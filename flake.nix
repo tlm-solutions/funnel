@@ -23,10 +23,10 @@
         in
         rec {
           checks = packages;
-          packages.dvb-api = package;
+          packages.funnel = package;
           defaultPackage = package;
           overlay = (final: prev: {
-            dvb-api = package;
+            funnel = package;
           });
         }
       ) // {
