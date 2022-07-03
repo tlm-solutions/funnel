@@ -11,7 +11,7 @@ naersk.buildPackage {
   nativeBuildInputs = [ pkg-config protobuf cmake ];
 
   meta = with lib; {
-    description = "public api to fetch all the spicy live data";
+    description = "service which takes the incoming data";
     homepage = "https://github.com/dump-dvb/funnel";
   };
 }

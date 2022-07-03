@@ -156,9 +156,9 @@ impl ConnectionPool {
 
     pub async fn write_all(&self, extracted: &ReducedTelegram, stop_meta_information: &Stop) {
         let mut dead_sockets = Vec::new();
-
         let mut unlocked_self = self.connections.lock().unwrap();
-
+        
+        println!("Telegram: {:?}", extracted);
         for (i, socket) in unlocked_self.iter_mut().enumerate() {
             println!("Writing to socket {}", i);
             match block_on(tokio::time::timeout(
