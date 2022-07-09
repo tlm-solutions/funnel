@@ -1,4 +1,4 @@
-{ naersk, src, lib, pkg-config, cmake, protobuf }:
+{ naersk, src, lib, pkg-config, cmake, protobuf, postgresql}:
 
 naersk.buildPackage {
   pname = "funnel";
@@ -8,7 +8,7 @@ naersk.buildPackage {
 
   cargoSha256 = lib.fakeSha256;
 
-  nativeBuildInputs = [ pkg-config protobuf cmake ];
+  nativeBuildInputs = [ pkg-config protobuf cmake postgresql ];
 
   meta = with lib; {
     description = "service which takes the incoming data";
