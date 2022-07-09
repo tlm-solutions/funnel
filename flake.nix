@@ -23,13 +23,16 @@
         in
         rec {
           checks = packages;
-          packages.funnel = package;
-          defaultPackage = package;
-          overlay = (final: prev: {
+          packages = {
             funnel = package;
-          });
+            default = package;
+          };
         }
       ) // {
+      overlays.default = final: prev: {
+        inherit (self.packages.${prev.system})
+          funnel;
+      };
       hydraJobs =
         let
           hydraSystems = [
