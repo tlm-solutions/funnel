@@ -1,6 +1,9 @@
 // This example explores how to properly close a connection.
 //
-use super::{ReducedTelegram, Stop, WebSocketTelegram};
+use telegrams::{R09WebSocketTelegram, R09GrpcTelegram};
+
+use stop_names::TransmissionPosition;
+
 use futures_util::stream::{SplitSink, SplitStream};
 use tokio::net::TcpStream;
 use {
@@ -27,10 +30,10 @@ struct Filter {
 }
 
 impl Filter {
-    pub fn fits(&self, telegram: &ReducedTelegram) -> bool {
-        (self.regions.is_empty() || self.regions.contains(&telegram.region_code))
-            && (self.junctions.is_empty() || self.junctions.contains(&telegram.position_id))
-            && (self.lines.is_empty() || self.lines.contains(&telegram.line))
+    pub fn fits(&self, telegram: &R09GrpcTelegram) -> bool {
+        (self.regions.is_empty() || self.regions.contains(&(telegram.region as u32)))
+            && (self.junctions.is_empty() || self.junctions.contains(&telegram.junction))
+            && (self.lines.is_empty() || (telegram.line.is_some() && self.lines.contains(&telegram.line.unwrap())))
     }
 }
 
@@ -101,7 +104,7 @@ impl Socket {
             }
         }
     }
-    pub async fn write(&mut self, telegram: &ReducedTelegram, stop: &Stop) -> bool {
+    pub async fn write(&mut self, telegram: &R09GrpcTelegram, stop: &TransmissionPosition) -> bool {
         {
             let state = self.state.lock().unwrap();
             if state.filter.is_some() && !state.filter.as_ref().unwrap().fits(telegram) {
@@ -109,7 +112,7 @@ impl Socket {
             }
         }
 
-        let sock_tele = WebSocketTelegram {
+        let sock_tele = R09WebSocketTelegram {
             reduced: telegram.clone(),
             meta_data: stop.clone(),
         };
@@ -154,7 +157,7 @@ impl ConnectionPool {
         }
     }
 
-    pub async fn write_all(&self, extracted: &ReducedTelegram, stop_meta_information: &Stop) {
+    pub async fn write_all(&self, extracted: &R09GrpcTelegram, stop_meta_information: &TransmissionPosition) {
         let mut dead_sockets = Vec::new();
         let mut unlocked_self = self.connections.lock().unwrap();
         
