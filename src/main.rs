@@ -51,7 +51,9 @@ impl ReceivesTelegrams for TelegramProcessor {
     async fn receive_r09(&self, request: Request<R09GrpcTelegram>,
     ) -> Result<Response<ReturnCode>, Status> {
         let extracted = request.into_inner().clone();
+        
 
+        println!("Received Telegram from data-accumulator: {:?}", &extracted);
         self.sender.lock().unwrap().broadcast(extracted);
 
         let reply = ReturnCode { status: 0 };
