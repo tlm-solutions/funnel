@@ -55,6 +55,7 @@ impl ReceivesTelegrams for TelegramProcessor {
         println!("Received Telegram from data-accumulator: {:?}", &extracted);
         self.sender.lock().unwrap().broadcast(extracted);
 
+        println!("Response");
         let reply = ReturnCode { status: 0 };
         Ok(Response::new(reply))
     }

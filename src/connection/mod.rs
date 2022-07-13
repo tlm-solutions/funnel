@@ -40,7 +40,14 @@ pub async fn connection_loop(bus: Arc<Mutex<Bus<R09GrpcTelegram>>>) {
 
     while let Ok((tcp, addr)) = server.accept().await {
         println!("New Socket Connection {}!", addr);
-        let new_receiver = bus.lock().unwrap().add_rx();
+        let new_receiver;
+
+        {
+            let extraced_bus = bux.lock().unwrap():
+            new_receiver = extraced_bus.add_rx();
+        }
+
+        println!("Start new thread with nice receiver");
         tokio::spawn(accept_connection(tcp, new_receiver));
     }
 }
