@@ -32,7 +32,7 @@ impl Filter {
     }
 }
 
-pub async fn connection_loop(bus: Arc<Mutex<Bus<R09GrpcTelegram>>>) {
+pub async fn connection_loop(wrapped_bus: Arc<Mutex<Bus<R09GrpcTelegram>>>) {
     let default_websock_port = String::from("127.0.0.1:9001");
     let websocket_port = env::var("DEFAULT_WEBSOCKET_HOST").unwrap_or(default_websock_port);
 
@@ -40,11 +40,11 @@ pub async fn connection_loop(bus: Arc<Mutex<Bus<R09GrpcTelegram>>>) {
 
     while let Ok((tcp, addr)) = server.accept().await {
         println!("New Socket Connection {}!", addr);
-        let new_receiver;
+        let new_receiver: BusReader<R09GrpcTelegram>;
 
         {
-            let extraced_bus = bux.lock().unwrap():
-            new_receiver = extraced_bus.add_rx();
+            let mut bus = wrapped_bus.lock().unwrap();
+            new_receiver = bus.add_rx();
         }
 
         println!("Start new thread with nice receiver");
