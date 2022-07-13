@@ -51,7 +51,6 @@ impl ReceivesTelegrams for TelegramProcessor {
     async fn receive_r09(&self, request: Request<R09GrpcTelegram>,
     ) -> Result<Response<ReturnCode>, Status> {
         let extracted = request.into_inner().clone();
-        
 
         println!("Received Telegram from data-accumulator: {:?}", &extracted);
         self.sender.lock().unwrap().broadcast(extracted);
@@ -74,6 +73,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let telegram_processor = TelegramProcessor::new(global_bus);
+
+    println!("starting grpc server at addr: {:?}", &addr);
     Server::builder()
         .add_service(ReceivesTelegramsServer::new(telegram_processor))
         .serve(addr)
