@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 telegrams = { version = "0.4", git = "https://github.com/dump-dvb/telegrams" }
-stop-names = { version = "0.4", git = "https://github.com/dump-dvb/stop-names" }
+stop-names = { version = "0.5", git = "https://github.com/dump-dvb/stop-names" }
 
 tonic = "0.7"
 prost = "0.10"
