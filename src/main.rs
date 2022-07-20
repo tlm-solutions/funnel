@@ -57,7 +57,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let default_grpc_port = String::from("127.0.0.1:50051");
     let grpc_port = env::var("GRPC_HOST").unwrap_or(default_grpc_port);
     let addr = grpc_port.parse()?;
-    let global_bus = Arc::new(Mutex::new(Bus::new(20)));
+    let mut bus = Bus::new(20);
+    let global_bus = Arc::new(Mutex::new(bus));
     
     let arc_clone = Arc::clone(&global_bus);
     tokio::spawn(async move {
