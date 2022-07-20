@@ -26,21 +26,12 @@ use std::sync::{Mutex, Arc};
 
 #[derive(Clone)]
 pub struct TelegramProcessor {
-    pub stops_lookup: InterRegional,
     sender: Arc<Mutex<Bus<R09GrpcTelegram>>>
 }
 
 impl TelegramProcessor {
     fn new(bus: Arc<Mutex<Bus<R09GrpcTelegram>>>) -> TelegramProcessor {
-        let default_stops = String::from("../stops.json");
-        let stops_file = env::var("STOPS_FILE").unwrap_or(default_stops);
-
-        println!("Reading File: {}", &stops_file);
-        let res = InterRegional::from(stops_file.as_str())
-            .expect("cannot parse stops.json");
-
         TelegramProcessor {
-            stops_lookup: res,
             sender: bus
         }
     }
