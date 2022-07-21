@@ -20,19 +20,19 @@ use connection::connection_loop;
 
 use std::env;
 use tonic::{transport::Server, Request, Response, Status};
-use bus::Bus;
 use std::sync::{Mutex, Arc};
+use tokio::sync::broadcast;
 
 
 #[derive(Clone)]
 pub struct TelegramProcessor {
-    sender: Arc<Mutex<Bus<R09GrpcTelegram>>>
+    sender: Arc<Mutex<broadcast::Sender<R09GrpcTelegram>>>
 }
 
 impl TelegramProcessor {
-    fn new(bus: Arc<Mutex<Bus<R09GrpcTelegram>>>) -> TelegramProcessor {
+    fn new(tx: Arc<Mutex<broadcast::Sender<R09GrpcTelegram>>>) -> TelegramProcessor {
         TelegramProcessor {
-            sender: bus
+            sender: tx
         }
     }
 }
@@ -44,7 +44,7 @@ impl ReceivesTelegrams for TelegramProcessor {
         let extracted = request.into_inner().clone();
 
         println!("Received Telegram from data-accumulator: {:?}", &extracted);
-        self.sender.lock().unwrap().broadcast(extracted);
+        self.sender.lock().unwrap().send(extracted);
 
         println!("Response");
         let reply = ReturnCode { status: 0 };
@@ -57,15 +57,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let default_grpc_port = String::from("127.0.0.1:50051");
     let grpc_port = env::var("GRPC_HOST").unwrap_or(default_grpc_port);
     let addr = grpc_port.parse()?;
-    let mut bus = Bus::new(20);
-    let global_bus = Arc::new(Mutex::new(bus));
+    let (tx, mut rx) = broadcast::channel(20);
+    let global_tx = Arc::new(Mutex::new(tx));
+
+    tokio::spawn(async move {
+        loop {
+            println!("Received {:?} on broadcast channel", rx.recv().await.unwrap());
+        }
+    });
     
-    let arc_clone = Arc::clone(&global_bus);
+    let arc_clone = Arc::clone(&global_tx);
     tokio::spawn(async move {
         connection_loop(arc_clone).await;
     });
 
-    let telegram_processor = TelegramProcessor::new(global_bus);
+    let telegram_processor = TelegramProcessor::new(global_tx);
 
     println!("starting grpc server at addr: {:?}", &addr);
     Server::builder()

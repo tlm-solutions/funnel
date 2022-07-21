@@ -10,7 +10,7 @@ use {
         sync::{Arc, Mutex},
     },
     tokio::net::TcpListener,
-    bus::{Bus, BusReader},
+    tokio::sync::broadcast,
     tokio::io::AsyncWriteExt
 };
 
@@ -32,30 +32,32 @@ impl Filter {
     }
 }
 
-pub async fn connection_loop(wrapped_bus: Arc<Mutex<Bus<R09GrpcTelegram>>>) {
+pub async fn connection_loop(wrapped_tx: Arc<Mutex<broadcast::Sender<R09GrpcTelegram>>>) {
     let default_websock_port = String::from("127.0.0.1:9001");
     let websocket_port = env::var("DEFAULT_WEBSOCKET_HOST").unwrap_or(default_websock_port);
 
     let server = TcpListener::bind(websocket_port).await.unwrap();
 
     while let Ok((tcp, addr)) = server.accept().await {
-        println!("New Socket Connection {}!", addr);
-        let new_receiver: BusReader<R09GrpcTelegram>;
+        println!("New socket connection on address {}!", addr);
+        let mut new_receiver: broadcast::Receiver<R09GrpcTelegram>;
+        let receiver_count: usize;
 
         {
-            let mut bus = wrapped_bus.lock().unwrap();
-            new_receiver = bus.add_rx();
+            let mut tx = wrapped_tx.lock().unwrap();
+            receiver_count = tx.receiver_count();
+            new_receiver = tx.subscribe();
         }
 
-        println!("Start new thread with nice receiver");
+        println!("Current receiver count is {}.", receiver_count);
         tokio::spawn(accept_connection(tcp, new_receiver));
     }
 }
 
 
-async fn accept_connection(mut stream: TcpStream, mut receiver: BusReader<R09GrpcTelegram>) {
+async fn accept_connection(mut stream: TcpStream, mut receiver: broadcast::Receiver<R09GrpcTelegram>) {
     loop {
-        let data = receiver.recv().unwrap();
+        let data = receiver.recv().await.unwrap();
         let json_to_string = serde_json::to_string(&data).unwrap();
 
         match stream.write(json_to_string.as_bytes()).await {
