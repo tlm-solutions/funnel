@@ -63,7 +63,9 @@ pub async fn connection_loop(wrapped_tx: Arc<Mutex<broadcast::Sender<R09GrpcTele
 
 
 async fn accept_connection(mut stream: WebSocket<TcpStream>, mut receiver: broadcast::Receiver<R09GrpcTelegram>) {
+    println!("Entering Loop");
     loop {
+        println!("Getting Data");
         let data = receiver.recv().await.unwrap();
         let json_to_string = serde_json::to_string(&data).unwrap();
 
