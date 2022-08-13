@@ -46,7 +46,7 @@ pub async fn connection_loop(wrapped_tx: Arc<Mutex<broadcast::Sender<R09GrpcTele
 
     for stream in server.incoming() {
         let mut websocket = accept(stream.unwrap()).unwrap();
-        //println!("New socket connection on address {}!", addr);
+        println!("New socket connection on address!");
         let mut new_receiver: broadcast::Receiver<R09GrpcTelegram>;
         let receiver_count: usize;
 

@@ -43,10 +43,10 @@ impl ReceivesTelegrams for TelegramProcessor {
     ) -> Result<Response<ReturnCode>, Status> {
         let extracted = request.into_inner().clone();
 
-        println!("Received Telegram from data-accumulator: {:?}", &extracted);
+        //println!("Received Telegram from data-accumulator: {:?}", &extracted);
         self.sender.lock().unwrap().send(extracted);
 
-        println!("Response");
+        //println!("Response");
         let reply = ReturnCode { status: 0 };
         Ok(Response::new(reply))
     }
@@ -62,7 +62,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tokio::spawn(async move {
         loop {
-            println!("Received {:?} on broadcast channel", rx.recv().await.unwrap());
+            let data: R09GrpcTelegram = rx.recv().await.unwrap();
+            println!("Received Line: {} Run: {} Position: {}", data.line.unwrap(), data.run_number.unwrap(), data.reporting_point);
         }
     });
     
