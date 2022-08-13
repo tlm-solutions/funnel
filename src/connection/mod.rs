@@ -66,6 +66,7 @@ async fn accept_connection(mut stream: WebSocket<TcpStream>, mut receiver: broad
     loop {
         let data = receiver.recv().await.unwrap();
         let json_to_string = serde_json::to_string(&data).unwrap();
+
         //let msg = websocket.read_message().unwrap();
 
         // We do not want to send back ping/pong messages.
@@ -73,14 +74,18 @@ async fn accept_connection(mut stream: WebSocket<TcpStream>, mut receiver: broad
         //    websocket.write_message(msg).unwrap();
         //}
         
+        println!("writing message !");
         match stream.write_message(Message::Text(json_to_string)) {
             Err(e) => {
                 println!("Error {:?}", e);
                 break;
             }
-            Ok(_) => {}
+            Ok(data) => {
+                println!("Data {:?}", data);
+            }
 
         }
     }
+    println!("Error Terminating ... ");
 
 }
