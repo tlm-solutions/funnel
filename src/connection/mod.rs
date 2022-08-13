@@ -5,6 +5,7 @@ use telegrams::{R09WebSocketTelegram, R09GrpcTelegram};
 use std::net::TcpStream;
 use std::net::TcpListener;
 use std::io::Write;
+use std::thread;
 //use tokio::net::TcpStream;
 use {
     serde::{Deserialize, Serialize},
@@ -57,9 +58,35 @@ pub async fn connection_loop(wrapped_tx: Arc<Mutex<broadcast::Sender<R09GrpcTele
         }
 
         println!("Current receiver count is {}.", receiver_count);
-        tokio::spawn( async move { 
-            accept_connection(websocket, new_receiver)
-        }.await);
+        loop {
+            println!("Getting Data");
+            match new_receiver.recv().await {
+                Err(e) => {
+                    println!("Error: {:?}", e);
+                }
+                Ok(data) => {
+                    let json_to_string = serde_json::to_string(&data).unwrap();
+
+                    //let msg = websocket.read_message().unwrap();
+                    // We do not want to send back ping/pong messages.
+                    //if msg.is_binary() || msg.is_text() {
+                    //    websocket.write_message(msg).unwrap();
+                    //}
+
+                    println!("writing message !");
+                    match websocket.write_message(Message::Text(json_to_string)) {
+                        Err(e) => {
+                            println!("Error {:?}", e);
+                            break;
+                        }
+                        Ok(data) => {
+                            println!("Sending Data {:?}", data);
+                        }
+                    }
+                }
+            }
+        }
+        //tokio::spawn(accept_connection(websocket, new_receiver));
     }
 }
 
