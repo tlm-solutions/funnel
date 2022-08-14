@@ -180,6 +180,8 @@ class ReceivesTelegramsImpl final : public dvbdump::ReceivesTelegrams::Service {
 
 int main() {
     try {
+        std::cout << "GRPC_PORT:" << std::getenv("GRPC_PORT") << std::endl;
+        std::cout << "GRPC_WEBSOCKET:" << std::getenv("WEBSOCKET_PORT") << std::endl;
         short grpc_port = static_cast<short>(std::stoi(std::getenv("GRPC_PORT")));
         short websocket_port = static_cast<short>(std::stoi(std::getenv("WEBSOCKET_PORT")));
 
@@ -187,7 +189,6 @@ int main() {
         BroadcastServer server_instance;
         thread t1(bind(&BroadcastServer::process_messages,&server_instance));
         thread t2([&]() { server_instance.run(websocket_port); });
-
 
         std::string server_address("127.0.0.1:" + std::to_string(grpc_port));
         ReceivesTelegramsImpl service;
