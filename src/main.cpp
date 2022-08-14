@@ -182,8 +182,8 @@ int main() {
     try {
         std::cout << "GRPC_PORT:" << std::getenv("GRPC_PORT") << std::endl;
         std::cout << "GRPC_WEBSOCKET:" << std::getenv("WEBSOCKET_PORT") << std::endl;
-        short grpc_port = static_cast<short>(std::stoi(std::getenv("GRPC_PORT")));
-        short websocket_port = static_cast<short>(std::stoi(std::getenv("WEBSOCKET_PORT")));
+        short grpc_port = static_cast<unsigned short>(std::stoi(std::getenv("GRPC_PORT")));
+        short websocket_port = static_cast<unsigned short>(std::stoi(std::getenv("WEBSOCKET_PORT")));
 
 
         BroadcastServer server_instance;
