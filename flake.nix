@@ -8,6 +8,7 @@
 
     telegrams = {
       url = "github:dump-dvb/telegrams";
+      flake = false;
     };
   };
 

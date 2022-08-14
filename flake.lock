@@ -1,0 +1,60 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1660408157,
+        "narHash": "sha256-Ldb7/jZTGqqqHwewDYv6PSoLlXK+DjMFL1Hd+vXQP9k=",
+        "owner": "revol-xut",
+        "repo": "nixpkgs",
+        "rev": "554f5f5edf4e0454901b43cf0324dfb549abe36f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "revol-xut",
+        "ref": "master",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "telegrams": "telegrams",
+        "utils": "utils"
+      }
+    },
+    "telegrams": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1659905766,
+        "narHash": "sha256-b48Mm/XUScU9zX8TQwmGfgekew3KhgqRB6f3hJnke6Y=",
+        "owner": "dump-dvb",
+        "repo": "telegrams",
+        "rev": "ae78e8b4f649a77be171ebb871dd3eb87aff7005",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dump-dvb",
+        "repo": "telegrams",
+        "type": "github"
+      }
+    },
+    "utils": {
+      "locked": {
+        "lastModified": 1659877975,
+        "narHash": "sha256-zllb8aq3YO3h8B/U0/J1WBgAL8EX5yWf5pMj3G0NAmc=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "c0e246b9b83f637f4681389ecabcb2681b4f3af0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
