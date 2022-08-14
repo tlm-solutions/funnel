@@ -115,9 +115,11 @@ public:
             lock.unlock();
 
             if (a.type == SUBSCRIBE) {
+                std::cout << "SUBSCRIBE" << std::endl;
                 lock_guard<mutex> guard(connection_lock_);
                 connections_.insert(a.hdl);
             } else if (a.type == UNSUBSCRIBE) {
+                std::cout << "UNSUBSCRIBE" << std::endl;
                 lock_guard<mutex> guard(connection_lock_);
                 connections_.erase(a.hdl);
             } else if (a.type == MESSAGE) {
@@ -142,6 +144,7 @@ public:
         {
             std::lock_guard<mutex> guard(connection_lock_);
             connection_list::iterator it;
+            std::cout << "size: " << std::to_string(connections_.size()) << std::endl;
             std::size_t i = 0;
             for (it = connections_.begin(); it != connections_.end(); ++it) {
                 std::cout << "sending message to: " << i << std::endl;
