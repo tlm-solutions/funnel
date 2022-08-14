@@ -175,22 +175,22 @@ private:
 class ReceivesTelegramsImpl final : public dvbdump::ReceivesTelegrams::Service {
     private:
         BroadcastServer websocket_server_;
-        std::thread message_processer_;
-        std::thread active_listener_;
+        std::unique_ptr<std::thread> message_processer_ = nullptr;
+        std::unique_ptr<std::thread> active_listener_ = nullptr;
     public:
         ReceivesTelegramsImpl(unsigned short websocket_port) {
             BroadcastServer websocket_server_;
-            
+
             std::cout << "spawning message processor" << std::endl; 
-            thread active_listener_(bind(&BroadcastServer::process_messages,&websocket_server_));
+            active_listener_ = std::make_unique<std::thread>(bind(&BroadcastServer::process_messages,&websocket_server_));
 
             std::cout << "spawning listening loop" << std::endl; 
-            thread message_processer_([&]() { websocket_server_.run(websocket_port); });
+            message_processer_ = std::make_unique<std::thread>([&]() { websocket_server_.run(websocket_port); });
         }
 
         ~ReceivesTelegramsImpl() {
-            active_listener_.join();
-            message_processer_.join();
+            active_listener_->join();
+            message_processer_->join();
         }
 
         grpc::Status receive_r09(grpc::ServerContext* context, const dvbdump::R09GrpcTelegram* telegram, dvbdump::ReturnCode* return_code) override {
