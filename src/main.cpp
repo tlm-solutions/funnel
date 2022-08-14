@@ -134,15 +134,20 @@ public:
     }
 
     void queue_telegram(const dvbdump::R09GrpcTelegram* telegram) {
-        std::lock_guard<mutex> guard(connection_lock_);
         std::string serialized;
         serialized.reserve(200);
         google::protobuf::util::MessageToJsonString(*telegram, &serialized);
-        std::cout << serialized << std::endl;
-        //MessageToJsonString(*telegram, serialized);
-        connection_list::iterator it;
-        for (it = connections_.begin(); it != connections_.end(); ++it) {
-            server_.send(*it,serialized, websocketpp::frame::opcode::TEXT);
+        //std::cout << serialized << std::endl;
+
+        {
+            std::lock_guard<mutex> guard(connection_lock_);
+            connection_list::iterator it;
+            std::size_t i = 0;
+            for (it = connections_.begin(); it != connections_.end(); ++it) {
+                std::cout << "sending message to: " << i << std::endl;
+                server_.send(*it,serialized, websocketpp::frame::opcode::TEXT);
+                i++;
+            }
         }
     }
 
