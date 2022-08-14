@@ -114,13 +114,16 @@ public:
 
             lock.unlock();
 
+
+            std::cout << "a: " << a.type << "size: " << std::to_string(connections_.size()) << std::endl;
             if (a.type == SUBSCRIBE) {
                 std::cout << "SUBSCRIBE" << std::endl;
-                lock_guard<mutex> guard(connection_lock_);
+                std::lock_guard<mutex> guard(connection_lock_);
                 connections_.insert(a.hdl);
+                std::cout << "size: " << std::to_string(connections_.size()) << std::endl;
             } else if (a.type == UNSUBSCRIBE) {
                 std::cout << "UNSUBSCRIBE" << std::endl;
-                lock_guard<mutex> guard(connection_lock_);
+                std::lock_guard<mutex> guard(connection_lock_);
                 connections_.erase(a.hdl);
             } else if (a.type == MESSAGE) {
                 lock_guard<mutex> guard(connection_lock_);
@@ -132,6 +135,7 @@ public:
             } else {
                 // undefined.
             }
+
         }
     }
 
