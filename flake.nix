@@ -1,24 +1,25 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
-    naersk = {
-      url = "github:nix-community/naersk";
-    };
+    nixpkgs.url = "github:revol-xut/nixpkgs/master";
 
     utils = {
       url = "github:numtide/flake-utils";
     };
+
+    telegrams = {
+      url = "github:dump-dvb/telegrams";
+    };
   };
 
-  outputs = { self, nixpkgs, naersk, utils, ... }:
-    utils.lib.eachDefaultSystem
+  outputs = { self, nixpkgs, utils, telegrams, ... }:
+    (utils.lib.eachDefaultSystem
       (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
 
           package = pkgs.callPackage ./derivation.nix {
-            naersk = naersk.lib.${system};
+            #stdenv = pkgs.clang13Stdenv;
+            telegrams = telegrams;
           };
         in
         rec {
@@ -53,5 +54,5 @@
           )
           { }
           hydraSystems;
-    };
+    });
 }
