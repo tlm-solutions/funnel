@@ -62,6 +62,10 @@ public:
         server_.set_message_handler(bind(&BroadcastServer::on_message,this,::_1,::_2));
     }
 
+    ~BroadcastServer() {
+        server_.reset();
+    }
+
     void run(uint16_t port) {
         server_.listen(port);
         server_.start_accept();
@@ -69,6 +73,7 @@ public:
         try {
             server_.run();
         } catch (const std::exception & e) {
+            std::cout << "crash" << std::endl;
             std::cout << e.what() << std::endl;
         }
     }
@@ -119,6 +124,8 @@ public:
                 std::cout << "SUBSCRIBE" << std::endl;
                 std::lock_guard<mutex> guard(connection_lock_);
                 connections_.insert(a.hdl);
+
+                std::cout << "myself:" << this << std::endl;
                 std::cout << "size: " << std::to_string(connections_.size()) << std::endl;
             } else if (a.type == UNSUBSCRIBE) {
                 std::cout << "UNSUBSCRIBE" << std::endl;
@@ -142,15 +149,15 @@ public:
         std::string serialized;
         serialized.reserve(200);
         google::protobuf::util::MessageToJsonString(*telegram, &serialized);
-        //std::cout << serialized << std::endl;
+        std::cout << serialized << std::endl;
 
         {
             std::lock_guard<mutex> guard(connection_lock_);
             connection_list::iterator it;
-            std::cout << "size: " << std::to_string(connections_.size()) << std::endl;
+            std::cout << "size: " << std::to_string(connections_.size()) << " myself:" << this << std::endl;
             std::size_t i = 0;
             for (it = connections_.begin(); it != connections_.end(); ++it) {
-                std::cout << "sending message to: " << i << std::endl;
+                std::cout << "sending message to: " << i <<  std::endl;
                 server_.send(*it,serialized, websocketpp::frame::opcode::TEXT);
                 i++;
             }
@@ -175,22 +182,20 @@ private:
 class ReceivesTelegramsImpl final : public dvbdump::ReceivesTelegrams::Service {
     private:
         BroadcastServer websocket_server_;
-        std::unique_ptr<std::thread> message_processer_ = nullptr;
-        std::unique_ptr<std::thread> active_listener_ = nullptr;
+        std::thread message_processer_;
+        std::thread active_listener_;
     public:
         ReceivesTelegramsImpl(unsigned short websocket_port) {
-            BroadcastServer websocket_server_;
-
             std::cout << "spawning message processor" << std::endl; 
-            active_listener_ = std::make_unique<std::thread>(bind(&BroadcastServer::process_messages,&websocket_server_));
-
+            active_listener_ = std::thread(bind(&BroadcastServer::process_messages,&websocket_server_));
             std::cout << "spawning listening loop" << std::endl; 
-            message_processer_ = std::make_unique<std::thread>([&]() { websocket_server_.run(websocket_port); });
+            message_processer_ = std::thread([&]() { websocket_server_.run(websocket_port); });
         }
 
         ~ReceivesTelegramsImpl() {
-            active_listener_->join();
-            message_processer_->join();
+            std::cout << "stoping ..." << std::endl;
+            active_listener_.join();
+            message_processer_.join();
         }
 
         grpc::Status receive_r09(grpc::ServerContext* context, const dvbdump::R09GrpcTelegram* telegram, dvbdump::ReturnCode* return_code) override {
