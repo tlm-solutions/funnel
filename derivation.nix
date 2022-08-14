@@ -21,10 +21,9 @@ let
       maintainers = with maintainers; [ revol-xut ];
     };
   };
-
 in 
 stdenv.mkDerivation {
-  pname = "telegram-yeeter";
+  pname = "funnel";
   version = "0.1.0";
 
   src = ./.;
@@ -42,7 +41,7 @@ stdenv.mkDerivation {
 
   installPhase = ''
     mkdir -p $out/bin
-    cp telegram-yeeter $out/bin/
+    cp funnel $out/bin/
   '';
 
   nativeBuildInputs = [ pkg-config cmake];
