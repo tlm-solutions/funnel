@@ -170,7 +170,7 @@ class ReceivesTelegramsImpl final : public dvbdump::ReceivesTelegrams::Service {
             BroadcastServer websocket_server_;
         }
 
-        grpc::Status GetFeature(grpc::ServerContext* context, const dvbdump::R09GrpcTelegram* telegram, dvbdump::ReturnCode* return_code) {
+        grpc::Status receive_r09(grpc::ServerContext* context, const dvbdump::R09GrpcTelegram* telegram, dvbdump::ReturnCode* return_code) override {
             std::cout << "received telegram" << std::endl;
             this->websocket_server_.queue_telegram(telegram);
             return_code->set_status(0);
@@ -184,7 +184,6 @@ int main() {
         std::cout << "GRPC_WEBSOCKET:" << std::getenv("WEBSOCKET_PORT") << std::endl;
         unsigned short grpc_port = static_cast<unsigned short>(std::stoi(std::getenv("GRPC_PORT")));
         unsigned short websocket_port = static_cast<unsigned short>(std::stoi(std::getenv("WEBSOCKET_PORT")));
-
 
         BroadcastServer server_instance;
         thread t1(bind(&BroadcastServer::process_messages,&server_instance));
@@ -200,7 +199,7 @@ int main() {
         std::cout << "Server listening on " << server_address << std::endl;
         server->Wait();
 
-
+        t2.join();
         t1.join();
 
     } catch (websocketpp::exception const & e) {
