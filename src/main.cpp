@@ -114,7 +114,6 @@ public:
 
             lock.unlock();
 
-
             std::cout << "a: " << a.type << "size: " << std::to_string(connections_.size()) << std::endl;
             if (a.type == SUBSCRIBE) {
                 std::cout << "SUBSCRIBE" << std::endl;
@@ -176,10 +175,14 @@ private:
 class ReceivesTelegramsImpl final : public dvbdump::ReceivesTelegrams::Service {
     private:
         BroadcastServer websocket_server_;
-
+        std::thread message_process_;
+        std::thread active_listener_;
     public:
-        ReceivesTelegramsImpl() {
+        ReceivesTelegramsImpl(unsigned short websocket_port) {
             BroadcastServer websocket_server_;
+            
+            thread active_listener_(bind(&BroadcastServer::process_messages,&websocket_server_));
+            thread message_process_([&]() { websocket_server_.run(websocket_port); });
         }
 
         grpc::Status receive_r09(grpc::ServerContext* context, const dvbdump::R09GrpcTelegram* telegram, dvbdump::ReturnCode* return_code) override {
@@ -197,12 +200,8 @@ int main() {
         unsigned short grpc_port = static_cast<unsigned short>(std::stoi(std::getenv("GRPC_PORT")));
         unsigned short websocket_port = static_cast<unsigned short>(std::stoi(std::getenv("WEBSOCKET_PORT")));
 
-        BroadcastServer server_instance;
-        thread t1(bind(&BroadcastServer::process_messages,&server_instance));
-        thread t2([&]() { server_instance.run(websocket_port); });
-
         std::string server_address("127.0.0.1:" + std::to_string(grpc_port));
-        ReceivesTelegramsImpl service;
+        ReceivesTelegramsImpl service(websocket_port);
 
         grpc::ServerBuilder builder;
         builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
@@ -211,8 +210,8 @@ int main() {
         std::cout << "Server listening on " << server_address << std::endl;
         server->Wait();
 
-        t2.join();
-        t1.join();
+        //t2.join();
+        //t1.join();
 
     } catch (websocketpp::exception const & e) {
         std::cout << e.what() << std::endl;
