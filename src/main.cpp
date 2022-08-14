@@ -138,6 +138,7 @@ public:
         std::string serialized;
         serialized.reserve(200);
         google::protobuf::util::MessageToJsonString(*telegram, &serialized);
+        std::cout << serialized << std::endl;
         //MessageToJsonString(*telegram, serialized);
         connection_list::iterator it;
         for (it = connections_.begin(); it != connections_.end(); ++it) {
@@ -184,8 +185,8 @@ int main() {
 
 
         BroadcastServer server_instance;
-        thread t(bind(&BroadcastServer::process_messages,&server_instance));
-        server_instance.run(websocket_port);
+        thread t1(bind(&BroadcastServer::process_messages,&server_instance));
+        thread t2([&]() { server_instance.run(websocket_port); });
 
 
         std::string server_address("127.0.0.1:" + std::to_string(grpc_port));
@@ -199,7 +200,7 @@ int main() {
         server->Wait();
 
 
-        t.join();
+        t1.join();
 
     } catch (websocketpp::exception const & e) {
         std::cout << e.what() << std::endl;
