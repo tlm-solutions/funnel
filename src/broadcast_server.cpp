@@ -124,7 +124,12 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
     // serialize the protobuf struct into json string
     std::string serialized;
     serialized.reserve(200);
-    google::protobuf::util::MessageToJsonString(*telegram, &serialized);
+    google::protobuf::util::JsonPrintOptions options;
+    options.always_print_primitive_fields = true;
+    options.preserve_proto_field_names = true;
+    options.always_print_enums_as_ints = true;
+
+    google::protobuf::util::MessageToJsonString(*telegram, &serialized, options);
 
     // lock connection list and yeet the telegram to all peers
     {
