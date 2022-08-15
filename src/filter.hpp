@@ -23,13 +23,9 @@ struct Filter {
     Filter() = default;
 
     auto match(unsigned int other_line, unsigned int other_position, unsigned int other_region) const noexcept -> bool {
-        if (lines.empty() && positions.empty() && regions.empty()) {
-            return true;
-        }
-
-        bool matches_line = std::find(std::begin(lines), std::end(lines), other_line) != std::end(lines);
-        bool matches_position = std::find(std::begin(positions), std::end(positions), other_position) != std::end(positions);
-        bool matches_region = std::find(std::begin(regions), std::end(regions), other_region) != std::end(regions);
+        bool matches_line = (std::find(std::begin(lines), std::end(lines), other_line) != std::end(lines)) || lines.empty();
+        bool matches_position = (std::find(std::begin(positions), std::end(positions), other_position) != std::end(positions)) || positions.empty();
+        bool matches_region = (std::find(std::begin(regions), std::end(regions), other_region) != std::end(regions)) || regions.empty();
         
 
         std::cout << "filter: " << matches_line << "|" << matches_position << "|" << matches_region << std::endl;
