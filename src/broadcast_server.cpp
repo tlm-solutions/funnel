@@ -98,6 +98,19 @@ void BroadcastServer::process_messages() noexcept {
             filters_.erase(std::begin(filters_) + index);
 
         } else if (a.type == MESSAGE) {
+
+            std::string message = a.msg->get_payload();
+            JS::ParseContext context(message);
+            Filter filter;
+            context.parseTo(filter);
+
+            const auto pos = std::find_if(connections_.begin(), connections_.end(), [&a](const connection_hdl& ptr1) {
+                return ptr1.lock().get() == ((const std::weak_ptr<void>&)a.hdl).lock().get();
+            });
+
+            auto index = pos - std::begin(connections_);
+            filters_[index] = filter;
+
             // set filter here
         } else {
             // undefined.

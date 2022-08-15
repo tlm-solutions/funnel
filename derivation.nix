@@ -1,4 +1,4 @@
-{ stdenv, lib, pkg-config, openssl, fetchFromGitHub, cmake, protobuf, websocketpp, boost17x, asio, glibc_multi, grpc, which, telegrams}:
+{ stdenv, lib, pkg-config, openssl, fetchFromGitHub, cmake, protobuf, boost17x, asio, glibc_multi, grpc, which, telegrams}:
 let 
   websocketpp = stdenv.mkDerivation rec {
     pname = "websocket++";
@@ -9,6 +9,27 @@ let
       repo = "websocketpp";
       rev = version;
       sha256 = "sha256-9fIwouthv2GcmBe/UPvV7Xn9P2o0Kmn2hCI4jCh0hPM=";
+    };
+
+    nativeBuildInputs = [ cmake ];
+
+    meta = with lib; {
+      homepage = "https://www.zaphoyd.com/websocketpp/";
+      description = "C++/Boost Asio based websocket client/server library";
+      license = licenses.bsd3;
+      platforms = platforms.unix;
+      maintainers = with maintainers; [ revol-xut ];
+    };
+  };
+  json_struct = stdenv.mkDerivation rec {
+    pname = "json_struct";
+    version = "0.0.1";
+
+    src = fetchFromGitHub {
+      owner = "jorgen";
+      repo = "json_struct";
+      rev = "bb94319b1d63058d70dad45114a08950f6b0d977";
+      sha256 = "sha256-NWRkCZEpZrkYdzE72lL/1NtM1j54OxfUaWA+0vcM2Do=";
     };
 
     nativeBuildInputs = [ cmake ];
@@ -46,7 +67,7 @@ stdenv.mkDerivation {
 
   nativeBuildInputs = [ pkg-config cmake];
 
-  buildInputs = [ openssl glibc_multi protobuf websocketpp asio grpc which ]; #(asio.override({ stdenv = stdenv; })) ];
+  buildInputs = [ openssl glibc_multi protobuf websocketpp asio grpc which json_struct ]; #(asio.override({ stdenv = stdenv; })) ];
 
   meta = with lib; {
     description = "service which takes the incoming data";
