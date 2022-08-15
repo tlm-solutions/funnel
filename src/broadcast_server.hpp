@@ -2,6 +2,7 @@
 #define FUNNEL_BROADCAST_SERVER_HPP
 
 #include "protobuf/telegram.pb.h"
+#include "filter.hpp"
 
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
@@ -25,6 +26,10 @@ using websocketpp::lib::lock_guard;
 using websocketpp::lib::unique_lock;
 using websocketpp::lib::condition_variable;
 
+struct Connection {
+    connection_hdl socket_;
+    Filter filter_;
+};
 
 enum action_type {
     SUBSCRIBE,
@@ -47,7 +52,9 @@ private:
     using connection_list = std::set<connection_hdl,std::owner_less<connection_hdl> >;
 
     server server_;
-    connection_list connections_;
+    std::vector<connection_hdl> connections_;
+    std::vector<Filter> filters_;
+
     std::queue<action> actions_;
     std::atomic<bool> kill_;
 

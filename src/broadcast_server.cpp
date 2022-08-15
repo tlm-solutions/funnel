@@ -4,6 +4,11 @@
 
 #include "./broadcast_server.hpp"
 
+#include <vector>
+#include <memory>
+#include <iostream>
+#include <algorithm>
+
 BroadcastServer::BroadcastServer () noexcept {
     // setting the state of the broadcast_server to active
     kill_.store(false);
@@ -76,11 +81,22 @@ void BroadcastServer::process_messages() noexcept {
         if (a.type == SUBSCRIBE) {
             std::cout << "SUBSCRIBE" << std::endl;
             std::lock_guard<mutex> guard(connection_lock_);
-            connections_.insert(a.hdl);
+            connections_.push_back(a.hdl);
+            filters_.push_back(Filter{});
+
         } else if (a.type == UNSUBSCRIBE) {
             std::cout << "UNSUBSCRIBE" << std::endl;
             std::lock_guard<mutex> guard(connection_lock_);
-            connections_.erase(a.hdl);
+
+            const auto pos = std::find_if(connections_.begin(), connections_.end(), [&a](const connection_hdl& ptr1) {
+                return ptr1.lock().get() == ((const std::weak_ptr<void>&)a.hdl).lock().get();
+            });
+
+            auto index = pos - std::begin(connections_);
+
+            connections_.erase(std::begin(connections_) + index);
+            filters_.erase(std::begin(filters_) + index);
+
         } else if (a.type == MESSAGE) {
             // set filter here
         } else {
@@ -100,11 +116,15 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
     // lock connection list and yeet the telegram to all peers
     {
         std::lock_guard<mutex> guard(connection_lock_);
-        connection_list::iterator it;
+        //connection_list::iterator it;
         std::size_t i = 0;
-        for (it = connections_.begin(); it != connections_.end(); ++it) {
-            server_.send(*it,serialized, websocketpp::frame::opcode::TEXT);
+        auto filter_iterator = filters_.begin();
+        for (auto it = connections_.begin(); it != connections_.end(); ++it) {
+            if (filter_iterator->match(telegram->line(), telegram->reporting_point(), telegram->region())) {
+                server_.send(*it,serialized, websocketpp::frame::opcode::TEXT);
+            }
             i++;
+            filter_iterator++;
         }
     }
 }
