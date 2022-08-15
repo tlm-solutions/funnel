@@ -30,7 +30,9 @@ struct Filter {
         bool matches_line = std::find(std::begin(lines), std::end(lines), other_line) != std::end(lines);
         bool matches_position = std::find(std::begin(positions), std::end(positions), other_position) != std::end(positions);
         bool matches_region = std::find(std::begin(regions), std::end(regions), other_region) != std::end(regions);
+        
 
+        std::cout << "filter: " << matches_line << "|" << matches_position << "|" << matches_region << std::endl;
         return matches_line && matches_region && matches_position;
     }
 };
