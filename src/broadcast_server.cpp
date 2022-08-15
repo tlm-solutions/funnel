@@ -40,7 +40,6 @@ void BroadcastServer::run(uint16_t port) noexcept {
 void BroadcastServer::on_open(connection_hdl hdl) noexcept {
     {
         lock_guard<mutex> guard(action_lock_);
-        std::cout << "new connection" << std::endl;
         actions_.push(action(SUBSCRIBE,hdl));
     }
     action_condition_.notify_one();
@@ -49,7 +48,6 @@ void BroadcastServer::on_open(connection_hdl hdl) noexcept {
 void BroadcastServer::on_close(connection_hdl hdl) noexcept {
     {
         lock_guard<mutex> guard(action_lock_);
-        std::cout << "closing connection" << std::endl;
         actions_.push(action(UNSUBSCRIBE,hdl));
     }
     action_condition_.notify_one();
@@ -59,7 +57,6 @@ void BroadcastServer::on_message(connection_hdl hdl, server::message_ptr msg) no
     // queue message up for sending by processing thread
     {
         lock_guard<mutex> guard(action_lock_);
-        std::cout << "message from user" << std::endl;
         actions_.push(action(MESSAGE,hdl,msg));
     }
     action_condition_.notify_one();
@@ -81,6 +78,8 @@ void BroadcastServer::process_messages() noexcept {
         if (a.type == SUBSCRIBE) {
             std::cout << "SUBSCRIBE" << std::endl;
             std::lock_guard<mutex> guard(connection_lock_);
+
+            // add new connection to connection pool
             connections_.push_back(a.hdl);
             filters_.push_back(Filter{});
 
@@ -94,24 +93,33 @@ void BroadcastServer::process_messages() noexcept {
 
             auto index = pos - std::begin(connections_);
 
+            // after successfully searching the connection we remove it from the connection poool
             connections_.erase(std::begin(connections_) + index);
             filters_.erase(std::begin(filters_) + index);
 
         } else if (a.type == MESSAGE) {
-
             std::string message = a.msg->get_payload();
+            std::cout << "SETTING FILTER TO: " << message << std::endl;
+
+            // parses string to filter struct
             JS::ParseContext context(message);
             Filter filter;
             context.parseTo(filter);
 
-            const auto pos = std::find_if(connections_.begin(), connections_.end(), [&a](const connection_hdl& ptr1) {
-                return ptr1.lock().get() == ((const std::weak_ptr<void>&)a.hdl).lock().get();
-            });
+            {
+                // we sadly need a lock here to make sure that nobody deletes the connection while writing
+                std::lock_guard<mutex> guard(connection_lock_);
 
-            auto index = pos - std::begin(connections_);
-            filters_[index] = filter;
+                // searches for connection
+                const auto pos = std::find_if(connections_.begin(), connections_.end(), [&a](const connection_hdl& ptr1) {
+                    return ptr1.lock().get() == ((const std::weak_ptr<void>&)a.hdl).lock().get();
+                });
 
-            // set filter here
+                auto index = pos - std::begin(connections_);
+
+                // overrites old filter
+                filters_[index] = filter;
+            }
         } else {
             // undefined.
         }
@@ -135,13 +143,11 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
     {
         std::lock_guard<mutex> guard(connection_lock_);
         //connection_list::iterator it;
-        std::size_t i = 0;
         auto filter_iterator = filters_.begin();
         for (auto it = connections_.begin(); it != connections_.end(); ++it) {
             if (filter_iterator->match(telegram->line(), telegram->reporting_point(), telegram->region())) {
                 server_.send(*it,serialized, websocketpp::frame::opcode::TEXT);
             }
-            i++;
             filter_iterator++;
         }
     }

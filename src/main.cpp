@@ -4,7 +4,6 @@
 #include "./receives_telegrams.hpp"
 
 #include <iostream>
-#include <set>
 
 int main() {
     try {

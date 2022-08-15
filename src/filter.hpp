@@ -15,9 +15,9 @@ struct Filter {
     JS_OBJ(lines, positions, regions);
 
     Filter(
-            const std::vector<unsigned int>& other_line, 
-            const std::vector<unsigned int>& other_position, 
-            const std::vector<unsigned int>& other_region
+        const std::vector<unsigned int>& other_line, 
+        const std::vector<unsigned int>& other_position, 
+        const std::vector<unsigned int>& other_region
     ): lines(other_line), positions(other_position), regions(other_region) {}
 
     Filter() = default;
@@ -26,9 +26,6 @@ struct Filter {
         bool matches_line = (std::find(std::begin(lines), std::end(lines), other_line) != std::end(lines)) || lines.empty();
         bool matches_position = (std::find(std::begin(positions), std::end(positions), other_position) != std::end(positions)) || positions.empty();
         bool matches_region = (std::find(std::begin(regions), std::end(regions), other_region) != std::end(regions)) || regions.empty();
-        
-
-        std::cout << "filter: " << matches_line << "|" << matches_position << "|" << matches_region << std::endl;
         return matches_line && matches_region && matches_position;
     }
 };

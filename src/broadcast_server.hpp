@@ -10,7 +10,6 @@
 #include <google/protobuf/util/json_util.h>
 
 #include <iostream>
-#include <set>
 #include <atomic>
 
 typedef websocketpp::server<websocketpp::config::asio> server;
