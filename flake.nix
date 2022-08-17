@@ -6,13 +6,13 @@
       url = "github:numtide/flake-utils";
     };
 
-    telegrams = {
-      url = "github:dump-dvb/telegrams";
+    dump-dvb-rust = {
+      url = "github:dump-dvb/dump-dvb.rs";
       flake = false;
     };
   };
 
-  outputs = { self, nixpkgs, utils, telegrams, ... }:
+  outputs = { self, nixpkgs, utils, dump-dvb-rust, ... }:
     (utils.lib.eachDefaultSystem
       (system:
         let
@@ -20,7 +20,7 @@
 
           package = pkgs.callPackage ./derivation.nix {
             #stdenv = pkgs.clang13Stdenv;
-            telegrams = telegrams;
+            dump-dvb-rust = dump-dvb-rust;
           };
         in
         rec {

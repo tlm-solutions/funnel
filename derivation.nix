@@ -1,4 +1,17 @@
-{ stdenv, lib, pkg-config, openssl, fetchFromGitHub, cmake, protobuf, boost17x, asio, glibc_multi, grpc, which, telegrams}:
+{ 
+  stdenv, 
+  lib, 
+  pkg-config, 
+  openssl, 
+  fetchFromGitHub, 
+  cmake, 
+  protobuf, 
+  asio, 
+  #glibc_multi, 
+  grpc, 
+  which, 
+  dump-dvb-rust
+}:
 let 
   websocketpp = stdenv.mkDerivation rec {
     pname = "websocket++";
@@ -52,7 +65,7 @@ stdenv.mkDerivation {
   phases = [ "unpackPhase" "buildPhase" "installPhase" ];
 
   buildPhase = ''
-    cp ${telegrams}/proto/telegram.proto ./telegram.proto
+    cp ${dump-dvb-rust}/proto/telegram.proto ./telegram.proto
     mkdir -p src/protobuf
     protoc -I ./ --grpc_out=./src/protobuf/ --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./telegram.proto
     protoc -I=./ --cpp_out=./src/protobuf/ ./telegram.proto
@@ -67,7 +80,7 @@ stdenv.mkDerivation {
 
   nativeBuildInputs = [ pkg-config cmake];
 
-  buildInputs = [ openssl glibc_multi protobuf websocketpp asio grpc which json_struct ]; #(asio.override({ stdenv = stdenv; })) ];
+  buildInputs = [ openssl protobuf websocketpp asio grpc which json_struct ]; #(asio.override({ stdenv = stdenv; })) ];
 
   meta = with lib; {
     description = "service which takes the incoming data";
