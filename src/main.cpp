@@ -8,7 +8,7 @@
 int main() {
     try {
         std::cout << "GRPC_PORT:" << std::getenv("GRPC_PORT") << std::endl;
-        std::cout << "GRPC_WEBSOCKET:" << std::getenv("WEBSOCKET_PORT") << std::endl;
+        std::cout << "WEBSOCKET_PORT:" << std::getenv("WEBSOCKET_PORT") << std::endl;
         unsigned short grpc_port = static_cast<unsigned short>(std::stoi(std::getenv("GRPC_PORT")));
         unsigned short websocket_port = static_cast<unsigned short>(std::stoi(std::getenv("WEBSOCKET_PORT")));
 
