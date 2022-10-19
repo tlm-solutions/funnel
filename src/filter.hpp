@@ -1,4 +1,3 @@
-
 #ifndef FUNNEL_FILTER_HPP
 #define FUNNEL_FILTER_HPP
 
