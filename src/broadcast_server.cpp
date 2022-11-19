@@ -64,8 +64,13 @@ void BroadcastServer::on_message(connection_hdl hdl, server::message_ptr msg) no
 }
 
 void BroadcastServer::process_messages() noexcept {
+    // gets prometheus counter
     auto& opened_connections = exporter_.get_opened_connections();
     auto& closed_connections = exporter_.get_closed_connections();
+
+    // initializes the two labels
+    opened_connections.Add({{"count", "accumulative"}});
+    closed_connections.Add({{"count", "accumulative"}});
 
     while(not kill_) {
         std::unique_lock<mutex> lock(action_lock_);
