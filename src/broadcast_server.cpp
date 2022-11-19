@@ -64,7 +64,8 @@ void BroadcastServer::on_message(connection_hdl hdl, server::message_ptr msg) no
 }
 
 void BroadcastServer::process_messages() noexcept {
-    auto& open_connections = exporter_.get_open_connections();
+    auto& opened_connections = exporter_.get_opened_connections();
+    auto& closed_connections = exporter_.get_closed_connections();
 
     while(not kill_) {
         std::unique_lock<mutex> lock(action_lock_);
@@ -85,7 +86,7 @@ void BroadcastServer::process_messages() noexcept {
             // add new connection to connection pool
             connections_.push_back(a.hdl);
             filters_.emplace_back();
-            open_connections.Add({{"connections", "opened"}}).Increment();
+            opened_connections.Add({{"count", "accumulative"}}).Increment();
 
         } else if (a.type == UNSUBSCRIBE) {
             std::cout << "UNSUBSCRIBE" << std::endl;
@@ -101,7 +102,7 @@ void BroadcastServer::process_messages() noexcept {
             connections_.erase(std::begin(connections_) + index);
             filters_.erase(std::begin(filters_) + index);
 
-            open_connections.Add({{"connections", "closed"}}).Increment();
+            closed_connections.Add({{"count", "accumulative"}}).Increment();
 
         } else if (a.type == MESSAGE) {
             std::string message = a.msg->get_payload();
