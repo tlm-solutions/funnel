@@ -4,15 +4,10 @@
 
 #include "./receives_telegrams.hpp"
 
-ReceivesTelegramsImpl::ReceivesTelegramsImpl(unsigned short websocket_port) noexcept {
-    active_listener_ = std::thread(bind(&BroadcastServer::process_messages,&websocket_server_));
-    message_processer_ = std::thread([&]() { websocket_server_.run(websocket_port); });
-}
-
 ReceivesTelegramsImpl::~ReceivesTelegramsImpl() noexcept {
     websocket_server_.kill();
     active_listener_.join();
-    message_processer_.join();
+    message_processor_.join();
 }
 
 auto ReceivesTelegramsImpl::receive_r09(grpc::ServerContext* context, 
@@ -20,6 +15,11 @@ auto ReceivesTelegramsImpl::receive_r09(grpc::ServerContext* context,
     this->websocket_server_.queue_telegram(telegram);
     return_code->set_status(0);
     return grpc::Status::OK;
+}
+
+ReceivesTelegramsImpl::ReceivesTelegramsImpl(unsigned short websocket_port) noexcept {
+    active_listener_ = std::thread(bind(&BroadcastServer::process_messages, &websocket_server_));
+    message_processor_ = std::thread([&]() { websocket_server_.run(websocket_port); });
 }
 
 

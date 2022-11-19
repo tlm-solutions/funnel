@@ -1,2 +1,8 @@
 /target
 result
+.idea
+./src/protobuf
+./build/
+./cmake-build-debug/
+./cmake-build-release/
+./telegram.proto

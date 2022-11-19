@@ -9,18 +9,18 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 find_package (Threads REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
-#pkg_search_module(GRPCPP REQUIRED grpc++>=1.22.0)
-#find_library(BOOST boost)
+find_package(prometheus-cpp CONFIG REQUIRED)
 
-add_executable(funnel src/main.cpp src/broadcast_server.cpp src/receives_telegrams.cpp src/protobuf/telegram.pb.cc src/protobuf/telegram.grpc.pb.cc )
+add_executable(funnel src/main.cpp src/broadcast_server.cpp src/receives_telegrams.cpp src/protobuf/telegram.pb.cc src/protobuf/telegram.grpc.pb.cc src/prometheus.cpp src/prometheus.hpp)
 
 
 target_link_libraries( funnel PRIVATE 
     protobuf::libprotobuf
     gRPC::grpc++
-    #GRPCPP
     Threads::Threads
+    prometheus-cpp::pull
 )
+
 
 #target_compile_definitions(asio PUBLIC ASIO_STANDALONE)
 

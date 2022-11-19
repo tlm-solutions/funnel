@@ -3,6 +3,7 @@
 
 #include "protobuf/telegram.pb.h"
 #include "filter.hpp"
+#include "prometheus.hpp"
 
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
@@ -11,12 +12,11 @@
 
 #include <iostream>
 #include <atomic>
+#include <utility>
 
 typedef websocketpp::server<websocketpp::config::asio> server;
 
 using websocketpp::connection_hdl;
-using websocketpp::lib::placeholders::_1;
-using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
 
 using websocketpp::lib::thread;
@@ -25,11 +25,6 @@ using websocketpp::lib::lock_guard;
 using websocketpp::lib::unique_lock;
 using websocketpp::lib::condition_variable;
 
-struct Connection {
-    connection_hdl socket_;
-    Filter filter_;
-};
-
 enum action_type {
     SUBSCRIBE,
     UNSUBSCRIBE,
@@ -37,9 +32,9 @@ enum action_type {
 };
 
 struct action {
-    action(action_type t, connection_hdl h) : type(t), hdl(h) {}
+    action(action_type t, connection_hdl h) : type(t), hdl(std::move(h)) {}
     action(action_type t, connection_hdl h, server::message_ptr m)
-      : type(t), hdl(h), msg(m) {}
+      : type(t), hdl(std::move(h)), msg(std::move(m)) {}
 
     action_type type;
     websocketpp::connection_hdl hdl;
@@ -48,19 +43,18 @@ struct action {
 
 class BroadcastServer {
 private:
-    using connection_list = std::set<connection_hdl,std::owner_less<connection_hdl> >;
-
     server server_;
     std::vector<connection_hdl> connections_;
     std::vector<Filter> filters_;
 
     std::queue<action> actions_;
-    std::atomic<bool> kill_;
+    std::atomic<bool> kill_{};
 
-    std::mutex telegram_queue_lock_;
     std::mutex action_lock_;
     std::mutex connection_lock_;
     std::condition_variable action_condition_;
+
+    PrometheusExporter exporter_;
 
 public:
     BroadcastServer() noexcept;

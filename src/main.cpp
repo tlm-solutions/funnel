@@ -3,6 +3,14 @@
 
 #include "./receives_telegrams.hpp"
 
+#include <prometheus/counter.h>
+#include <prometheus/exposer.h>
+#include <prometheus/registry.h>
+
+#include <cstdlib>
+#include <memory>
+#include <string>
+#include <thread>
 #include <iostream>
 
 int main() {

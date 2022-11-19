@@ -4,12 +4,13 @@
 
 #include "./broadcast_server.hpp"
 
+#include <utility>
 #include <vector>
 #include <memory>
 #include <iostream>
 #include <algorithm>
 
-BroadcastServer::BroadcastServer () noexcept {
+BroadcastServer::BroadcastServer() noexcept {
     // setting the state of the broadcast_server to active
     kill_.store(false);
 
@@ -17,9 +18,9 @@ BroadcastServer::BroadcastServer () noexcept {
     server_.init_asio();
 
     // Register handler callbacks
-    server_.set_open_handler(bind(&BroadcastServer::on_open,this,::_1));
-    server_.set_close_handler(bind(&BroadcastServer::on_close,this,::_1));
-    server_.set_message_handler(bind(&BroadcastServer::on_message,this,::_1,::_2));
+    server_.set_open_handler([this](auto && PH1) { on_open(std::forward<decltype(PH1)>(PH1)); });
+    server_.set_close_handler([this](auto && PH1) { on_close(std::forward<decltype(PH1)>(PH1)); });
+    server_.set_message_handler([this](auto && PH1, auto && PH2) { on_message(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2)); });
 }
 
 BroadcastServer::~BroadcastServer() noexcept {
@@ -40,7 +41,7 @@ void BroadcastServer::run(uint16_t port) noexcept {
 void BroadcastServer::on_open(connection_hdl hdl) noexcept {
     {
         lock_guard<mutex> guard(action_lock_);
-        actions_.push(action(SUBSCRIBE,hdl));
+        actions_.push(action(SUBSCRIBE,std::move(hdl)));
     }
     action_condition_.notify_one();
 }
@@ -48,7 +49,7 @@ void BroadcastServer::on_open(connection_hdl hdl) noexcept {
 void BroadcastServer::on_close(connection_hdl hdl) noexcept {
     {
         lock_guard<mutex> guard(action_lock_);
-        actions_.push(action(UNSUBSCRIBE,hdl));
+        actions_.push(action(UNSUBSCRIBE,std::move(hdl)));
     }
     action_condition_.notify_one();
 }
@@ -57,12 +58,14 @@ void BroadcastServer::on_message(connection_hdl hdl, server::message_ptr msg) no
     // queue message up for sending by processing thread
     {
         lock_guard<mutex> guard(action_lock_);
-        actions_.push(action(MESSAGE,hdl,msg));
+        actions_.push(action(MESSAGE,std::move(hdl),std::move(msg)));
     }
     action_condition_.notify_one();
 }
 
 void BroadcastServer::process_messages() noexcept {
+    auto& open_connections = exporter_.get_open_connections();
+
     while(not kill_) {
         std::unique_lock<mutex> lock(action_lock_);
 
@@ -81,7 +84,8 @@ void BroadcastServer::process_messages() noexcept {
 
             // add new connection to connection pool
             connections_.push_back(a.hdl);
-            filters_.push_back(Filter{});
+            filters_.emplace_back();
+            open_connections.Add({{"connections", "opened"}}).Increment();
 
         } else if (a.type == UNSUBSCRIBE) {
             std::cout << "UNSUBSCRIBE" << std::endl;
@@ -96,6 +100,8 @@ void BroadcastServer::process_messages() noexcept {
             // after successfully searching the connection we remove it from the connection poool
             connections_.erase(std::begin(connections_) + index);
             filters_.erase(std::begin(filters_) + index);
+
+            open_connections.Add({{"connections", "closed"}}).Increment();
 
         } else if (a.type == MESSAGE) {
             std::string message = a.msg->get_payload();
@@ -117,7 +123,7 @@ void BroadcastServer::process_messages() noexcept {
 
                 auto index = pos - std::begin(connections_);
 
-                // overrites old filter
+                // overwrites old filter
                 filters_[index] = filter;
             }
         } else {
@@ -144,9 +150,9 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
         std::lock_guard<mutex> guard(connection_lock_);
         //connection_list::iterator it;
         auto filter_iterator = filters_.begin();
-        for (auto it = connections_.begin(); it != connections_.end(); ++it) {
+        for (auto & connection : connections_) {
             if (filter_iterator->match(telegram->line(), telegram->reporting_point(), telegram->region())) {
-                server_.send(*it,serialized, websocketpp::frame::opcode::TEXT);
+                server_.send(connection,serialized, websocketpp::frame::opcode::TEXT);
             }
             filter_iterator++;
         }

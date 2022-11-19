@@ -7,6 +7,10 @@
 #include "protobuf/telegram.pb.h"
 #include "protobuf/telegram.grpc.pb.h"
 
+#include <prometheus/counter.h>
+#include <prometheus/exposer.h>
+#include <prometheus/registry.h>
+
 #include <grpc/grpc.h>
 #include <grpcpp/security/server_credentials.h>
 #include <grpcpp/server.h>
@@ -16,11 +20,11 @@
 class ReceivesTelegramsImpl final : public dvbdump::ReceivesTelegrams::Service {
     private:
         BroadcastServer websocket_server_;
-        std::thread message_processer_;
+        std::thread message_processor_;
         std::thread active_listener_;
     public:
-        ReceivesTelegramsImpl(unsigned short websocket_port) noexcept;
-        ~ReceivesTelegramsImpl() noexcept;
+        explicit ReceivesTelegramsImpl(unsigned short websocket_port) noexcept;
+        ~ReceivesTelegramsImpl() noexcept override;
         auto receive_r09(grpc::ServerContext* context, const dvbdump::R09GrpcTelegram* telegram, dvbdump::ReturnCode* return_code) noexcept -> grpc::Status override;
 };
 

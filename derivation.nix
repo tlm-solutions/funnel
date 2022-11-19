@@ -7,10 +7,12 @@
   cmake, 
   protobuf, 
   asio, 
-  #glibc_multi, 
+  prometheus-cpp,
   grpc, 
   which, 
-  dump-dvb-rust
+  dump-dvb-rust,
+  curlpp,
+  curlFull
 }:
 let 
   websocketpp = stdenv.mkDerivation rec {
@@ -34,6 +36,7 @@ let
       maintainers = with maintainers; [ revol-xut ];
     };
   };
+
   json_struct = stdenv.mkDerivation rec {
     pname = "json_struct";
     version = "0.0.1";
@@ -80,7 +83,7 @@ stdenv.mkDerivation {
 
   nativeBuildInputs = [ pkg-config cmake];
 
-  buildInputs = [ openssl protobuf websocketpp asio grpc which json_struct ]; #(asio.override({ stdenv = stdenv; })) ];
+  buildInputs = [ openssl protobuf websocketpp asio grpc which json_struct prometheus-cpp curlFull curlpp ];
 
   meta = with lib; {
     description = "service which takes the incoming data";
