@@ -4,6 +4,17 @@
 
 #include "./broadcast_server.hpp"
 
+#include <curlpp/cURLpp.hpp>
+#include <curlpp/Easy.hpp>
+#include <curlpp/Options.hpp>
+#include <curlpp/Infos.hpp>
+
+#include <google/protobuf/util/type_resolver.h>
+#include <google/protobuf/util/type_resolver_util.h>
+#include <google/protobuf/util/json_util.h>
+#include <google/protobuf/message.h>
+//#include <google/protobuf/json/json.h>
+
 #include <utility>
 #include <vector>
 #include <memory>
@@ -21,6 +32,9 @@ BroadcastServer::BroadcastServer() noexcept {
     server_.set_open_handler([this](auto && PH1) { on_open(std::forward<decltype(PH1)>(PH1)); });
     server_.set_close_handler([this](auto && PH1) { on_close(std::forward<decltype(PH1)>(PH1)); });
     server_.set_message_handler([this](auto && PH1, auto && PH2) { on_message(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2)); });
+
+
+    api_url_ = std::getenv("API_DOMAIN");
 }
 
 BroadcastServer::~BroadcastServer() noexcept {
@@ -85,7 +99,6 @@ void BroadcastServer::process_messages() noexcept {
         lock.unlock();
 
         if (a.type == SUBSCRIBE) {
-            std::cout << "SUBSCRIBE" << std::endl;
             std::lock_guard<mutex> guard(connection_lock_);
 
             // add new connection to connection pool
@@ -94,7 +107,6 @@ void BroadcastServer::process_messages() noexcept {
             opened_connections.Add({{"count", "accumulative"}}).Increment();
 
         } else if (a.type == UNSUBSCRIBE) {
-            std::cout << "UNSUBSCRIBE" << std::endl;
             std::lock_guard<mutex> guard(connection_lock_);
 
             const auto pos = std::find_if(connections_.begin(), connections_.end(), [&a](const connection_hdl& ptr1) {
@@ -111,7 +123,6 @@ void BroadcastServer::process_messages() noexcept {
 
         } else if (a.type == MESSAGE) {
             std::string message = a.msg->get_payload();
-            std::cout << "SETTING FILTER TO: " << message << std::endl;
 
             // parses string to filter struct
             JS::ParseContext context(message);
@@ -135,21 +146,70 @@ void BroadcastServer::process_messages() noexcept {
         } else {
             // undefined.
         }
+    }
+}
 
+auto BroadcastServer::fetch_api(int line, int run) noexcept -> std::optional<ResponseInterpolated>{
+    RequestInterpolated request{line, run};
+
+    std::string body = JS::serializeStruct(request);
+
+    std::list<std::string> header;
+    header.push_back("Content-Type: application/json");
+
+    curlpp::Cleanup clean;
+    curlpp::Easy r;
+    r.setOpt(new curlpp::options::Url(api_url_));
+    r.setOpt(new curlpp::options::HttpHeader(header));
+    r.setOpt(new curlpp::options::PostFields(body));
+    r.setOpt(new curlpp::options::PostFieldSize(body.length()));
+
+    std::stringstream response;
+    r.setOpt(new curlpp::options::WriteStream(&response));
+
+    r.perform();
+
+    auto http_code = curlpp::infos::ResponseCode::get(r);
+
+    if (http_code == 200) {
+        std::string json_string = response.str();
+        auto protobuf_string = google::protobuf::StringPiece(json_string);
+        google::protobuf::util::JsonParseOptions parse_options;
+        ResponseInterpolated interpolation_struct;
+
+        auto status = google::protobuf::util::JsonStringToMessage(protobuf_string, (google::protobuf::Message*)&interpolation_struct, parse_options);
+
+        return interpolation_struct;
+    } else {
+        return std::nullopt;
     }
 }
 
 void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) noexcept {
-
     // serialize the protobuf struct into json string
-    std::string serialized;
-    serialized.reserve(200);
+    std::string plain_serialized;
+    plain_serialized.reserve(400);
+
+    std::string enriched_serialized;
+    enriched_serialized.reserve(600);
+
     google::protobuf::util::JsonPrintOptions options;
     options.always_print_primitive_fields = true;
     options.preserve_proto_field_names = true;
     options.always_print_enums_as_ints = true;
 
-    google::protobuf::util::MessageToJsonString(*telegram, &serialized, options);
+    google::protobuf::util::MessageToJsonString(*telegram, &plain_serialized, options);
+
+    auto interpolation_data = fetch_api(telegram->line(), telegram->run_number());
+    bool enrichment_possible = interpolation_data.has_value();
+    if (enrichment_possible) {
+        //enriched_telegram->add_enriched();
+
+
+    } else {
+
+    }
+
 
     // lock connection list and yeet the telegram to all peers
     {
@@ -158,7 +218,11 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
         auto filter_iterator = filters_.begin();
         for (auto & connection : connections_) {
             if (filter_iterator->match(telegram->line(), telegram->reporting_point(), telegram->region())) {
-                server_.send(connection,serialized, websocketpp::frame::opcode::TEXT);
+                if(filter_iterator->enrich) {
+
+                } else {
+                    server_.send(connection,plain_serialized, websocketpp::frame::opcode::TEXT);
+                }
             }
             filter_iterator++;
         }

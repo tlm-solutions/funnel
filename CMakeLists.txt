@@ -7,11 +7,24 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
+include(FindPkgConfig)
+
 find_package (Threads REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
 find_package(prometheus-cpp CONFIG REQUIRED)
+find_package(Protobuf REQUIRED)
+pkg_check_modules(CURLPP REQUIRED curlpp)
 
-add_executable(funnel src/main.cpp src/broadcast_server.cpp src/receives_telegrams.cpp src/protobuf/telegram.pb.cc src/protobuf/telegram.grpc.pb.cc src/prometheus.cpp src/prometheus.hpp)
+add_executable(funnel 
+    src/main.cpp
+    src/broadcast_server.cpp
+    src/receives_telegrams.cpp
+    src/protobuf/telegram.pb.cc
+    src/protobuf/telegram.grpc.pb.cc
+    src/prometheus.cpp
+    src/prometheus.hpp
+    src/api_request.hpp
+)
 
 
 target_link_libraries( funnel PRIVATE 
@@ -19,8 +32,7 @@ target_link_libraries( funnel PRIVATE
     gRPC::grpc++
     Threads::Threads
     prometheus-cpp::pull
+    ${CURLPP_LDFLAGS}
+    ${PROTOBUF_LIBRARIES}
 )
-
-
-#target_compile_definitions(asio PUBLIC ASIO_STANDALONE)
 

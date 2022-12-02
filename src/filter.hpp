@@ -10,14 +10,16 @@ struct Filter {
     std::vector<unsigned int> lines;
     std::vector<unsigned int> positions;
     std::vector<unsigned int> regions;
+    bool enrich;
 
-    JS_OBJ(lines, positions, regions);
+    JS_OBJ(lines, positions, regions, enrich);
 
     Filter(
         const std::vector<unsigned int>& other_line, 
         const std::vector<unsigned int>& other_position, 
-        const std::vector<unsigned int>& other_region
-    ): lines(other_line), positions(other_position), regions(other_region) {}
+        const std::vector<unsigned int>& other_region,
+        bool enricht
+    ): lines(other_line), positions(other_position), regions(other_region), enrich(enrich) {}
 
     Filter() = default;
 

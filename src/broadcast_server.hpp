@@ -4,6 +4,7 @@
 #include "protobuf/telegram.pb.h"
 #include "filter.hpp"
 #include "prometheus.hpp"
+#include "./api_request.hpp"
 
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
@@ -56,6 +57,7 @@ private:
 
     PrometheusExporter exporter_;
 
+    std::string api_url_;
 public:
     BroadcastServer() noexcept;
     ~BroadcastServer() noexcept;
@@ -67,6 +69,7 @@ public:
     void process_messages() noexcept;
     void queue_telegram(const dvbdump::R09GrpcTelegram* telegram) noexcept;
     void kill() noexcept;
+    auto fetch_api(int line, int run) noexcept -> std::optional<ResponseInterpolated>;
 };
 
 #endif //FUNNEL_BROADCAST_SERVER_HPP

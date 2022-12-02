@@ -3,11 +3,11 @@
     "dump-dvb-rust": {
       "flake": false,
       "locked": {
-        "lastModified": 1665951258,
-        "narHash": "sha256-t0aUYq4jiLiAcyDCJrI9UitydM3TLG/inupuM92n2GI=",
+        "lastModified": 1669580902,
+        "narHash": "sha256-qnkJeI5FZ8B3LKPkRhEz2s6tbaTS4TcHM0E2VaUa+Us=",
         "owner": "dump-dvb",
         "repo": "dump-dvb.rs",
-        "rev": "6fbb6bdcab4441cdee853e8e8c484606f8cf0dfc",
+        "rev": "5567be58b8982b5a06c5995c70e58a2c0df35b4b",
         "type": "github"
       },
       "original": {
