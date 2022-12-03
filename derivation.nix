@@ -6,7 +6,8 @@
   fetchFromGitHub, 
   cmake, 
   protobuf, 
-  asio, 
+  asio,
+  websocketpp,
   prometheus-cpp,
   grpc, 
   which, 
@@ -15,7 +16,7 @@
   curlFull
 }:
 let 
-  websocketpp = stdenv.mkDerivation rec {
+  /*websocketpp = stdenv.mkDerivation rec {
     pname = "websocket++";
     version = "0.8.2";
 
@@ -35,7 +36,7 @@ let
       platforms = platforms.unix;
       maintainers = with maintainers; [ revol-xut ];
     };
-  };
+  };*/
 
   json_struct = stdenv.mkDerivation rec {
     pname = "json_struct";
@@ -44,9 +45,11 @@ let
     src = fetchFromGitHub {
       owner = "jorgen";
       repo = "json_struct";
-      rev = "bb94319b1d63058d70dad45114a08950f6b0d977";
-      sha256 = "sha256-NWRkCZEpZrkYdzE72lL/1NtM1j54OxfUaWA+0vcM2Do=";
+      rev = "de80d452b3cc1688dfc2967dbfef5cb501e925d3";
+      sha256 = "sha256-lyeM+jkZRfclF7gCWj0ZGvuH5O/UAczPUd7rcVgh+T4=";
     };
+
+    cmakeFlags = ["-DJSON_STRUCT_OPT_BUILD_TESTS=OFF"];
 
     nativeBuildInputs = [ cmake ];
 
