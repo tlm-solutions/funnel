@@ -1,4 +1,4 @@
-{ 
+{
   stdenv, 
   lib, 
   pkg-config, 
@@ -13,7 +13,8 @@
   which, 
   dump-dvb-rust,
   curlpp,
-  curlFull
+  curlFull,
+  json-structs-src
 }:
 let 
   /*websocketpp = stdenv.mkDerivation rec {
@@ -42,14 +43,9 @@ let
     pname = "json_struct";
     version = "0.0.1";
 
-    src = fetchFromGitHub {
-      owner = "jorgen";
-      repo = "json_struct";
-      rev = "de80d452b3cc1688dfc2967dbfef5cb501e925d3";
-      sha256 = "sha256-lyeM+jkZRfclF7gCWj0ZGvuH5O/UAczPUd7rcVgh+T4=";
-    };
+    src = json-structs-src;
 
-    cmakeFlags = ["-DJSON_STRUCT_OPT_BUILD_TESTS=OFF"];
+    cmakeFlags = ["-DJSON_STRUCT_OPT_BUILD_TESTS=OFF" "-DCMAKE_INSTALL_PREFIX=''t"];
 
     nativeBuildInputs = [ cmake ];
 

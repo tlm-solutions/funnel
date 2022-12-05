@@ -16,18 +16,34 @@
         "type": "github"
       }
     },
-    "nixpkgs": {
+    "json-structs": {
+      "flake": false,
       "locked": {
-        "lastModified": 1663610923,
-        "narHash": "sha256-FzmK/YF9pCw4G4y+qMfvBJfObJD3c/BwtqYe/6JiolU=",
-        "owner": "revol-xut",
-        "repo": "nixpkgs",
-        "rev": "b95061d5983d46e20a8dc25d3e11fbe1e0c18ea1",
+        "lastModified": 1667607472,
+        "narHash": "sha256-lyeM+jkZRfclF7gCWj0ZGvuH5O/UAczPUd7rcVgh+T4=",
+        "owner": "jorgen",
+        "repo": "json_struct",
+        "rev": "de80d452b3cc1688dfc2967dbfef5cb501e925d3",
         "type": "github"
       },
       "original": {
-        "owner": "revol-xut",
-        "ref": "master",
+        "owner": "jorgen",
+        "repo": "json_struct",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1670009809,
+        "narHash": "sha256-yt/dQ32Vz4WenDLu4XeHbnXFxiHbTcnU0WwiLW5Ce6c=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "660e7737851506374da39c0fa550c202c824a17c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-22.11",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -35,6 +51,7 @@
     "root": {
       "inputs": {
         "dump-dvb-rust": "dump-dvb-rust",
+        "json-structs": "json-structs",
         "nixpkgs": "nixpkgs",
         "utils": "utils"
       }
