@@ -7,7 +7,7 @@ from websockets import connect
 
 config = {
     "regions": [0, 1],
-    #"enrich": True
+    "enrich": True
 }
 
 raw_config = json.dumps(config);

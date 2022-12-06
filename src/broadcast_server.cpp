@@ -149,7 +149,7 @@ void BroadcastServer::process_messages() noexcept {
     }
 }
 
-auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run) noexcept -> std::optional<dvbdump::Edge>{
+auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run, unsigned int region) noexcept -> std::optional<dvbdump::Edge>{
     RequestInterpolated request{line, run};
 
     std::string body = JS::serializeStruct(request);
@@ -159,7 +159,7 @@ auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run) noexcept 
 
     curlpp::Cleanup clean;
     curlpp::Easy r;
-    r.setOpt(new curlpp::options::Url(api_url_));
+    r.setOpt(new curlpp::options::Url(api_url_ + "/vehicles/" +std::to_string(region) + "/position"));
     r.setOpt(new curlpp::options::HttpHeader(header));
     r.setOpt(new curlpp::options::PostFields(body));
     r.setOpt(new curlpp::options::PostFieldSize(body.length()));
@@ -170,6 +170,8 @@ auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run) noexcept 
     r.perform();
 
     auto http_code = curlpp::infos::ResponseCode::get(r);
+
+    std::cout << "api returned error code:" << http_code << std::endl;
 
     if (http_code == 200) {
         std::string json_string = response.str();
@@ -204,9 +206,8 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
 
     google::protobuf::util::MessageToJsonString(*telegram, &plain_serialized, options);
 
-    auto interpolation_data = fetch_api(telegram->line(), telegram->run_number());
+    auto interpolation_data = fetch_api(telegram->line(), telegram->run_number(), telegram->region());
     bool enrichment_possible = interpolation_data.has_value();
-
     if (enrichment_possible) {
         dvbdump::Edge extracted = interpolation_data.value();
         //enriched_telegram->add_enriched();
