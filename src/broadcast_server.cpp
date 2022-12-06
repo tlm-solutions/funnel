@@ -149,7 +149,7 @@ void BroadcastServer::process_messages() noexcept {
     }
 }
 
-auto BroadcastServer::fetch_api(int line, int run) noexcept -> std::optional<ResponseInterpolated>{
+auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run) noexcept -> std::optional<dvbdump::Edge>{
     RequestInterpolated request{line, run};
 
     std::string body = JS::serializeStruct(request);
@@ -175,11 +175,15 @@ auto BroadcastServer::fetch_api(int line, int run) noexcept -> std::optional<Res
         std::string json_string = response.str();
         auto protobuf_string = google::protobuf::StringPiece(json_string);
         google::protobuf::util::JsonParseOptions parse_options;
-        ResponseInterpolated interpolation_struct;
+        dvbdump::Edge interpolation_struct; //TODO: this is fucking broken
 
-        auto status = google::protobuf::util::JsonStringToMessage(protobuf_string, (google::protobuf::Message*)&interpolation_struct, parse_options);
+        auto status = google::protobuf::util::JsonStringToMessage(protobuf_string, &interpolation_struct, parse_options);
 
-        return interpolation_struct;
+        if (status.ok()) {
+            return interpolation_struct;
+        } else {
+            return std::nullopt;
+        }
     } else {
         return std::nullopt;
     }
@@ -202,24 +206,25 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
 
     auto interpolation_data = fetch_api(telegram->line(), telegram->run_number());
     bool enrichment_possible = interpolation_data.has_value();
+
     if (enrichment_possible) {
+        dvbdump::Edge extracted = interpolation_data.value();
         //enriched_telegram->add_enriched();
-
-
-    } else {
-
+        auto hard_casted_pointer = (dvbdump::R09GrpcTelegramEnriched*)telegram;
+        auto list_of_values = hard_casted_pointer->add_enriched();
+        list_of_values->set_historical_time(extracted.historical_time());
+        google::protobuf::util::MessageToJsonString(*hard_casted_pointer, &enriched_serialized, options);
     }
-
 
     // lock connection list and yeet the telegram to all peers
     {
-        std::lock_guard<mutex> guard(connection_lock_);
+        std::lock_guard<std::mutex> guard(connection_lock_);
         //connection_list::iterator it;
         auto filter_iterator = filters_.begin();
         for (auto & connection : connections_) {
             if (filter_iterator->match(telegram->line(), telegram->reporting_point(), telegram->region())) {
-                if(filter_iterator->enrich) {
-
+                if(filter_iterator->enrich && enrichment_possible) {
+                    server_.send(connection,enriched_serialized, websocketpp::frame::opcode::TEXT);
                 } else {
                     server_.send(connection,plain_serialized, websocketpp::frame::opcode::TEXT);
                 }

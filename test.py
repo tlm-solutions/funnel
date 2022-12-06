@@ -7,6 +7,7 @@ from websockets import connect
 
 config = {
     "regions": [0, 1],
+    #"enrich": True
 }
 
 raw_config = json.dumps(config);
@@ -17,5 +18,5 @@ async def hello(uri):
         while True:
             print(await websocket.recv())
 
-asyncio.run(hello("wss://socket.dvb.solutions"))
+asyncio.run(hello("wss://socket.staging.dvb.solutions"))
 #asyncio.run(hello("ws://127.0.0.1:9001"))
