@@ -184,6 +184,7 @@ auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run, unsigned 
         if (status.ok()) {
             return interpolation_struct;
         } else {
+            std::cout << "couldn't decode:" << json_string << " error:" << status.message() << std::endl;
             return std::nullopt;
         }
     } else {
