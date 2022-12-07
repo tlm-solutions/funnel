@@ -232,9 +232,7 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
         enriched_telegram.set_train_length(telegram->train_length());
         enriched_telegram.set_vehicle_number(telegram->vehicle_number());
         enriched_telegram.set_operator_(telegram->operator_());
-
-        auto list_of_values = enriched_telegram.add_enriched();
-        list_of_values->set_historical_time(extracted.historical_time());
+        enriched_telegram.set_allocated_enriched(&extracted);
         google::protobuf::util::MessageToJsonString(enriched_telegram, &enriched_serialized, options);
     }
 

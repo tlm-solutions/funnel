@@ -16,7 +16,9 @@ async def hello(uri):
     async with connect(uri) as websocket:
         await websocket.send(raw_config)
         while True:
-            print(await websocket.recv())
+            data = json.loads(await websocket.recv())
+            if "enriched" in data.keys():
+                print(data["enriched"])
 
 asyncio.run(hello("wss://socket.staging.dvb.solutions"))
 #asyncio.run(hello("ws://127.0.0.1:9001"))
