@@ -212,8 +212,7 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
     auto interpolation_data = fetch_api(telegram->line(), telegram->run_number(), telegram->region());
     bool enrichment_possible = interpolation_data.has_value();
     if (enrichment_possible) {
-        dvbdump::Edge extracted = interpolation_data.value();
-        //enriched_telegram->add_enriched();
+        dvbdump::Edge* extracted = &(interpolation_data.value());
         dvbdump::R09GrpcTelegramEnriched enriched_telegram;
         enriched_telegram.set_time(telegram->time());
         enriched_telegram.set_station(telegram->station());
@@ -232,8 +231,10 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
         enriched_telegram.set_train_length(telegram->train_length());
         enriched_telegram.set_vehicle_number(telegram->vehicle_number());
         enriched_telegram.set_operator_(telegram->operator_());
-        enriched_telegram.set_allocated_enriched(&extracted);
+        enriched_telegram.set_allocated_enriched(extracted);
+        std::cout << "parsing to json" << std::endl;
         google::protobuf::util::MessageToJsonString(enriched_telegram, &enriched_serialized, options);
+        std::cout << "finished parsing" << std::endl;
     }
 
     // lock connection list and yeet the telegram to all peers
