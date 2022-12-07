@@ -180,7 +180,7 @@ auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run, unsigned 
         parse_options.case_insensitive_enum_parsing = false;
         parse_options.ignore_unknown_fields = true;
         dvbdump::Edge interpolation_struct;
-
+        
         auto status = google::protobuf::util::JsonStringToMessage(protobuf_string, &interpolation_struct, parse_options);
 
         if (status.ok()) {
@@ -214,10 +214,28 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
     if (enrichment_possible) {
         dvbdump::Edge extracted = interpolation_data.value();
         //enriched_telegram->add_enriched();
-        auto hard_casted_pointer = (dvbdump::R09GrpcTelegramEnriched*)telegram;
-        auto list_of_values = hard_casted_pointer->add_enriched();
+        dvbdump::R09GrpcTelegramEnriched enriched_telegram;
+        enriched_telegram.set_time(telegram->time());
+        enriched_telegram.set_station(telegram->station());
+        enriched_telegram.set_region(telegram->region());
+        enriched_telegram.set_telegram_type(telegram->telegram_type());
+        enriched_telegram.set_delay(telegram->delay());
+        enriched_telegram.set_reporting_point(telegram->reporting_point());
+        enriched_telegram.set_junction(telegram->junction());
+        enriched_telegram.set_direction(telegram->direction());
+        enriched_telegram.set_request_status(telegram->request_status());
+        enriched_telegram.set_priority(telegram->priority());
+        enriched_telegram.set_direction_request(telegram->direction_request());
+        enriched_telegram.set_line(telegram->line());
+        enriched_telegram.set_run_number(telegram->run_number());
+        enriched_telegram.set_destination_number(telegram->destination_number());
+        enriched_telegram.set_train_length(telegram->train_length());
+        enriched_telegram.set_vehicle_number(telegram->vehicle_number());
+        enriched_telegram.set_operator_(telegram->operator_());
+
+        auto list_of_values = enriched_telegram.add_enriched();
         list_of_values->set_historical_time(extracted.historical_time());
-        google::protobuf::util::MessageToJsonString(*hard_casted_pointer, &enriched_serialized, options);
+        google::protobuf::util::MessageToJsonString(enriched_telegram, &enriched_serialized, options);
     }
 
     // lock connection list and yeet the telegram to all peers
