@@ -171,8 +171,6 @@ auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run, unsigned 
 
     auto http_code = curlpp::infos::ResponseCode::get(r);
 
-    std::cout << "api returned error code:" << http_code << std::endl;
-
     if (http_code == 200) {
         std::string json_string = response.str();
         auto protobuf_string = google::protobuf::StringPiece(json_string);
@@ -232,12 +230,9 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
         enriched_telegram.set_operator_(telegram->operator_());
         enriched_telegram.set_allocated_enriched(interpolation_data);
 
-        std::cout << "parsing to json" << std::endl << std::flush;
         google::protobuf::util::MessageToJsonString(enriched_telegram, &enriched_serialized, options);
-        std::cout << "finished parsing" << std::endl << std::flush;
     }
 
-    std::cout << "1" << std::endl << std::flush;
     // lock connection list and yeet the telegram to all peers
     {
         std::lock_guard<std::mutex> guard(connection_lock_);
@@ -254,9 +249,6 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
             filter_iterator++;
         }
     }
-
-
-    std::cout << "3" << std::endl << std::flush;
 }
 
 void BroadcastServer::kill() noexcept {
