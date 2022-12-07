@@ -149,7 +149,7 @@ void BroadcastServer::process_messages() noexcept {
     }
 }
 
-auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run, unsigned int region) noexcept -> std::optional<dvbdump::Edge>{
+auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run, unsigned int region) noexcept -> dvbdump::Edge* {
     RequestInterpolated request{line, run};
 
     std::string body = JS::serializeStruct(request);
@@ -179,18 +179,18 @@ auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run, unsigned 
         google::protobuf::util::JsonParseOptions parse_options;
         parse_options.case_insensitive_enum_parsing = false;
         parse_options.ignore_unknown_fields = true;
-        dvbdump::Edge interpolation_struct;
+        auto* interpolation_struct = new dvbdump::Edge();
         
-        auto status = google::protobuf::util::JsonStringToMessage(protobuf_string, &interpolation_struct, parse_options);
+        auto status = google::protobuf::util::JsonStringToMessage(protobuf_string, interpolation_struct, parse_options);
 
         if (status.ok()) {
             return interpolation_struct;
         } else {
             std::cout << "couldn't decode:" << json_string << " error:" << status.message() << std::endl;
-            return std::nullopt;
+            return nullptr;
         }
     } else {
-        return std::nullopt;
+        return nullptr;
     }
 }
 
@@ -210,10 +210,9 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
     google::protobuf::util::MessageToJsonString(*telegram, &plain_serialized, options);
 
     auto interpolation_data = fetch_api(telegram->line(), telegram->run_number(), telegram->region());
-    bool enrichment_possible = interpolation_data.has_value();
-    dvbdump::Edge* extracted = interpolation_data.operator->();
+    bool enrichment_possible = interpolation_data != nullptr;
+    dvbdump::R09GrpcTelegramEnriched enriched_telegram;
     if (enrichment_possible) {
-        dvbdump::R09GrpcTelegramEnriched enriched_telegram;
         enriched_telegram.set_time(telegram->time());
         enriched_telegram.set_station(telegram->station());
         enriched_telegram.set_region(telegram->region());
@@ -231,12 +230,14 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
         enriched_telegram.set_train_length(telegram->train_length());
         enriched_telegram.set_vehicle_number(telegram->vehicle_number());
         enriched_telegram.set_operator_(telegram->operator_());
-        enriched_telegram.set_allocated_enriched(extracted);
-        std::cout << "parsing to json" << std::endl;
+        enriched_telegram.set_allocated_enriched(interpolation_data);
+
+        std::cout << "parsing to json" << std::endl << std::flush;
         google::protobuf::util::MessageToJsonString(enriched_telegram, &enriched_serialized, options);
-        std::cout << "finished parsing" << std::endl;
+        std::cout << "finished parsing" << std::endl << std::flush;
     }
 
+    std::cout << "1" << std::endl << std::flush;
     // lock connection list and yeet the telegram to all peers
     {
         std::lock_guard<std::mutex> guard(connection_lock_);
@@ -253,6 +254,9 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
             filter_iterator++;
         }
     }
+
+
+    std::cout << "3" << std::endl << std::flush;
 }
 
 void BroadcastServer::kill() noexcept {

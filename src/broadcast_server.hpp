@@ -69,7 +69,7 @@ public:
     void process_messages() noexcept;
     void queue_telegram(const dvbdump::R09GrpcTelegram* telegram) noexcept;
     void kill() noexcept;
-    auto fetch_api(unsigned  int line, unsigned int run, unsigned int region) noexcept -> std::optional<dvbdump::Edge>;
+    auto fetch_api(unsigned  int line, unsigned int run, unsigned int region) noexcept -> dvbdump::Edge*;
 };
 
 #endif //FUNNEL_BROADCAST_SERVER_HPP
