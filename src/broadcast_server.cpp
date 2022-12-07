@@ -211,8 +211,8 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
 
     auto interpolation_data = fetch_api(telegram->line(), telegram->run_number(), telegram->region());
     bool enrichment_possible = interpolation_data.has_value();
+    dvbdump::Edge* extracted = interpolation_data.operator->();
     if (enrichment_possible) {
-        dvbdump::Edge* extracted = &(interpolation_data.value());
         dvbdump::R09GrpcTelegramEnriched enriched_telegram;
         enriched_telegram.set_time(telegram->time());
         enriched_telegram.set_station(telegram->station());
