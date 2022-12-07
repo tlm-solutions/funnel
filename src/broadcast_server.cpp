@@ -177,7 +177,9 @@ auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run, unsigned 
         std::string json_string = response.str();
         auto protobuf_string = google::protobuf::StringPiece(json_string);
         google::protobuf::util::JsonParseOptions parse_options;
-        dvbdump::Edge interpolation_struct; //TODO: this is fucking broken
+        parse_options.case_insensitive_enum_parsing = false;
+        parse_options.ignore_unknown_fields = true;
+        dvbdump::Edge interpolation_struct;
 
         auto status = google::protobuf::util::JsonStringToMessage(protobuf_string, &interpolation_struct, parse_options);
 
