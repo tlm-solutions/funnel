@@ -1,14 +1,9 @@
-#define ASIO_STANDALONE
-#define _WEBSOCKETPP_CPP11_TYPE_TRAITS_
+//#define ASIO_STANDALONE
+//#define _WEBSOCKETPP_CPP11_TYPE_TRAITS_
 
-#include "./receives_telegrams.hpp"
-
-#include <prometheus/counter.h>
-#include <prometheus/exposer.h>
-#include <prometheus/registry.h>
+#include "receives_telegrams.hpp"
 
 #include <cstdlib>
-#include <memory>
 #include <string>
 #include <thread>
 #include <iostream>
@@ -30,7 +25,7 @@ int main() {
         std::cout << "Server listening on " << server_address << std::endl;
         server->Wait();
 
-    } catch (websocketpp::exception const & e) {
+    } catch (websocketpp::exception const &e) {
         std::cout << e.what() << std::endl;
     }
 }

@@ -14,17 +14,17 @@ PrometheusExporter::PrometheusExporter() noexcept {
     exposer_->RegisterCollectable(registry_);
 }
 
-auto PrometheusExporter::get_opened_connections() noexcept -> prometheus::Family<prometheus::Counter>& {
+auto PrometheusExporter::get_opened_connections() noexcept -> prometheus::Family<prometheus::Counter> & {
     return prometheus::BuildCounter()
-        .Name("open_funnel_connections")
-        .Help("Number of Open Websocket Connections")
-        .Register(*registry_);
+            .Name("open_funnel_connections")
+            .Help("Number of Open Websocket Connections")
+            .Register(*registry_);
 }
 
 auto PrometheusExporter::get_closed_connections() noexcept -> prometheus::Family<prometheus::Counter> & {
     return prometheus::BuildCounter()
-        .Name("closed_funnel_connections")
-        .Help("Number of Closed Websocket Connections")
-        .Register(*registry_);
+            .Name("closed_funnel_connections")
+            .Help("Number of Closed Websocket Connections")
+            .Register(*registry_);
 }
 

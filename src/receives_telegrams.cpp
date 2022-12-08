@@ -9,15 +9,16 @@ ReceivesTelegramsImpl::~ReceivesTelegramsImpl() noexcept {
     message_processor_.join();
 }
 
-auto ReceivesTelegramsImpl::receive_r09(grpc::ServerContext* context, 
-        const dvbdump::R09GrpcTelegram* telegram, dvbdump::ReturnCode* return_code) noexcept -> grpc::Status {
+auto ReceivesTelegramsImpl::receive_r09([[maybe_unused]]grpc::ServerContext *context,
+                                        const dvbdump::R09GrpcTelegram *telegram,
+                                        dvbdump::ReturnCode *return_code) noexcept -> grpc::Status {
     this->websocket_server_.queue_telegram(telegram);
     return_code->set_status(0);
     return grpc::Status::OK;
 }
 
 ReceivesTelegramsImpl::ReceivesTelegramsImpl(unsigned short websocket_port) noexcept {
-    active_listener_ = std::thread(bind(&BroadcastServer::process_messages, &websocket_server_));
+    active_listener_ = std::thread([ObjectPtr = &websocket_server_] { ObjectPtr->process_messages(); });
     message_processor_ = std::thread([&]() { websocket_server_.run(websocket_port); });
 }
 

@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
+set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra")
+
 include(FindPkgConfig)
 
 find_package (Threads REQUIRED)

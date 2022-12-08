@@ -18,14 +18,16 @@
 #include <grpcpp/server_context.h>
 
 class ReceivesTelegramsImpl final : public dvbdump::ReceivesTelegrams::Service {
-    private:
-        BroadcastServer websocket_server_;
-        std::thread message_processor_;
-        std::thread active_listener_;
-    public:
-        explicit ReceivesTelegramsImpl(unsigned short websocket_port) noexcept;
-        ~ReceivesTelegramsImpl() noexcept override;
-        auto receive_r09(grpc::ServerContext* context, const dvbdump::R09GrpcTelegram* telegram, dvbdump::ReturnCode* return_code) noexcept -> grpc::Status override;
+private:
+    BroadcastServer websocket_server_;
+    std::thread message_processor_;
+    std::thread active_listener_;
+public:
+    explicit ReceivesTelegramsImpl(unsigned short websocket_port) noexcept;
+    ~ReceivesTelegramsImpl() noexcept override;
+
+    auto receive_r09(grpc::ServerContext *context, const dvbdump::R09GrpcTelegram *telegram,
+                     dvbdump::ReturnCode *return_code) noexcept -> grpc::Status override;
 };
 
 #endif //FUNNEL_RECEIVES_TELEGRAMS_HPP

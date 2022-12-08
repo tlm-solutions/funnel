@@ -9,11 +9,9 @@
 #include <curlpp/Options.hpp>
 #include <curlpp/Infos.hpp>
 
-#include <google/protobuf/util/type_resolver.h>
 #include <google/protobuf/util/type_resolver_util.h>
 #include <google/protobuf/util/json_util.h>
 #include <google/protobuf/message.h>
-//#include <google/protobuf/json/json.h>
 
 #include <utility>
 #include <vector>
@@ -29,12 +27,20 @@ BroadcastServer::BroadcastServer() noexcept {
     server_.init_asio();
 
     // Register handler callbacks
-    server_.set_open_handler([this](auto && PH1) { on_open(std::forward<decltype(PH1)>(PH1)); });
-    server_.set_close_handler([this](auto && PH1) { on_close(std::forward<decltype(PH1)>(PH1)); });
-    server_.set_message_handler([this](auto && PH1, auto && PH2) { on_message(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2)); });
+    server_.set_open_handler([this](auto &&PH1) { on_open(std::forward<decltype(PH1)>(PH1)); });
+    server_.set_close_handler([this](auto &&PH1) { on_close(std::forward<decltype(PH1)>(PH1)); });
+    server_.set_message_handler([this](auto &&PH1, auto &&PH2) {
+        on_message(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+    });
 
 
-    api_url_ = std::getenv("API_DOMAIN");
+    if (std::getenv("API_DOMAIN") == nullptr) {
+        api_url_ = std::getenv("API_DOMAIN");
+        std::cout << "API_DOMAIN FOUND:" << api_url_.value() << std::endl;
+    } else {
+        api_url_ = std::nullopt;
+        std::cout << "NO API_DOMAIN FOUND" << std::endl;
+    };
 }
 
 BroadcastServer::~BroadcastServer() noexcept {
@@ -47,7 +53,7 @@ void BroadcastServer::run(uint16_t port) noexcept {
 
     try {
         server_.run();
-    } catch (const std::exception & e) {
+    } catch (const std::exception &e) {
         std::cout << e.what() << std::endl;
     }
 }
@@ -55,7 +61,7 @@ void BroadcastServer::run(uint16_t port) noexcept {
 void BroadcastServer::on_open(connection_hdl hdl) noexcept {
     {
         lock_guard<mutex> guard(action_lock_);
-        actions_.push(action(SUBSCRIBE,std::move(hdl)));
+        actions_.push(action(SUBSCRIBE, std::move(hdl)));
     }
     action_condition_.notify_one();
 }
@@ -63,7 +69,7 @@ void BroadcastServer::on_open(connection_hdl hdl) noexcept {
 void BroadcastServer::on_close(connection_hdl hdl) noexcept {
     {
         lock_guard<mutex> guard(action_lock_);
-        actions_.push(action(UNSUBSCRIBE,std::move(hdl)));
+        actions_.push(action(UNSUBSCRIBE, std::move(hdl)));
     }
     action_condition_.notify_one();
 }
@@ -72,24 +78,24 @@ void BroadcastServer::on_message(connection_hdl hdl, server::message_ptr msg) no
     // queue message up for sending by processing thread
     {
         lock_guard<mutex> guard(action_lock_);
-        actions_.push(action(MESSAGE,std::move(hdl),std::move(msg)));
+        actions_.push(action(MESSAGE, std::move(hdl), std::move(msg)));
     }
     action_condition_.notify_one();
 }
 
 void BroadcastServer::process_messages() noexcept {
     // gets prometheus counter
-    auto& opened_connections = exporter_.get_opened_connections();
-    auto& closed_connections = exporter_.get_closed_connections();
+    auto &opened_connections = exporter_.get_opened_connections();
+    auto &closed_connections = exporter_.get_closed_connections();
 
     // initializes the two labels
     opened_connections.Add({{"count", "accumulative"}});
     closed_connections.Add({{"count", "accumulative"}});
 
-    while(not kill_) {
+    while (not kill_) {
         std::unique_lock<mutex> lock(action_lock_);
 
-        while(actions_.empty()) {
+        while (actions_.empty()) {
             action_condition_.wait(lock);
         }
 
@@ -109,8 +115,8 @@ void BroadcastServer::process_messages() noexcept {
         } else if (a.type == UNSUBSCRIBE) {
             std::lock_guard<mutex> guard(connection_lock_);
 
-            const auto pos = std::find_if(connections_.begin(), connections_.end(), [&a](const connection_hdl& ptr1) {
-                return ptr1.lock().get() == ((const std::weak_ptr<void>&)a.hdl).lock().get();
+            const auto pos = std::find_if(connections_.begin(), connections_.end(), [&a](const connection_hdl &ptr1) {
+                return ptr1.lock().get() == ((const std::weak_ptr<void> &) a.hdl).lock().get();
             });
 
             auto index = pos - std::begin(connections_);
@@ -127,16 +133,19 @@ void BroadcastServer::process_messages() noexcept {
             // parses string to filter struct
             JS::ParseContext context(message);
             Filter filter;
-            context.parseTo(filter);
+            JS::Error return_value = context.parseTo(filter);
 
-            {
+            // no error while decoding payload from user
+            if (return_value == JS::Error::NoError) {
                 // we sadly need a lock here to make sure that nobody deletes the connection while writing
                 std::lock_guard<mutex> guard(connection_lock_);
 
                 // searches for connection
-                const auto pos = std::find_if(connections_.begin(), connections_.end(), [&a](const connection_hdl& ptr1) {
-                    return ptr1.lock().get() == ((const std::weak_ptr<void>&)a.hdl).lock().get();
-                });
+                const auto pos = std::find_if(connections_.begin(), connections_.end(),
+                                              [&a](const connection_hdl &ptr1) {
+                                                  return ptr1.lock().get() ==
+                                                         ((const std::weak_ptr<void> &) a.hdl).lock().get();
+                                              });
 
                 auto index = pos - std::begin(connections_);
 
@@ -149,20 +158,25 @@ void BroadcastServer::process_messages() noexcept {
     }
 }
 
-auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run, unsigned int region) noexcept -> dvbdump::Edge* {
+auto BroadcastServer::fetch_api(unsigned int line, unsigned int run, unsigned int region) const noexcept
+-> dvbdump::Edge * {
+    if (!api_url_.has_value()) {
+        return nullptr;
+    }
+
     RequestInterpolated request{line, run};
 
     std::string body = JS::serializeStruct(request);
 
     std::list<std::string> header;
-    header.push_back("Content-Type: application/json");
+    header.emplace_back("Content-Type: application/json");
 
     curlpp::Cleanup clean;
     curlpp::Easy r;
-    r.setOpt(new curlpp::options::Url(api_url_ + "/vehicles/" +std::to_string(region) + "/position"));
+    r.setOpt(new curlpp::options::Url(api_url_.value() + "/vehicles/" + std::to_string(region) + "/position"));
     r.setOpt(new curlpp::options::HttpHeader(header));
     r.setOpt(new curlpp::options::PostFields(body));
-    r.setOpt(new curlpp::options::PostFieldSize(body.length()));
+    r.setOpt(new curlpp::options::PostFieldSize(static_cast<long>(body.length())));
 
     std::stringstream response;
     r.setOpt(new curlpp::options::WriteStream(&response));
@@ -177,8 +191,8 @@ auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run, unsigned 
         google::protobuf::util::JsonParseOptions parse_options;
         parse_options.case_insensitive_enum_parsing = false;
         parse_options.ignore_unknown_fields = true;
-        auto* interpolation_struct = new dvbdump::Edge();
-        
+        auto *interpolation_struct = new dvbdump::Edge();
+
         auto status = google::protobuf::util::JsonStringToMessage(protobuf_string, interpolation_struct, parse_options);
 
         if (status.ok()) {
@@ -192,7 +206,7 @@ auto BroadcastServer::fetch_api(unsigned  int line, unsigned  int run, unsigned 
     }
 }
 
-void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) noexcept {
+void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram *telegram) noexcept {
     // serialize the protobuf struct into json string
     std::string plain_serialized;
     plain_serialized.reserve(400);
@@ -206,8 +220,8 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
     options.always_print_enums_as_ints = true;
 
     google::protobuf::util::MessageToJsonString(*telegram, &plain_serialized, options);
-
     auto interpolation_data = fetch_api(telegram->line(), telegram->run_number(), telegram->region());
+
     bool enrichment_possible = interpolation_data != nullptr;
     dvbdump::R09GrpcTelegramEnriched enriched_telegram;
     if (enrichment_possible) {
@@ -238,12 +252,12 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram* telegram) n
         std::lock_guard<std::mutex> guard(connection_lock_);
         //connection_list::iterator it;
         auto filter_iterator = filters_.begin();
-        for (auto & connection : connections_) {
+        for (auto &connection: connections_) {
             if (filter_iterator->match(telegram->line(), telegram->reporting_point(), telegram->region())) {
-                if(filter_iterator->enrich && enrichment_possible) {
-                    server_.send(connection,enriched_serialized, websocketpp::frame::opcode::TEXT);
+                if (filter_iterator->enrich && enrichment_possible) {
+                    server_.send(connection, enriched_serialized, websocketpp::frame::opcode::TEXT);
                 } else {
-                    server_.send(connection,plain_serialized, websocketpp::frame::opcode::TEXT);
+                    server_.send(connection, plain_serialized, websocketpp::frame::opcode::TEXT);
                 }
             }
             filter_iterator++;
