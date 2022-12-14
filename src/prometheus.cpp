@@ -3,11 +3,18 @@
 //
 
 #include "prometheus.hpp"
+#include <iostream>
 
 PrometheusExporter::PrometheusExporter() noexcept {
-    unsigned short exporter_port = static_cast<unsigned short>(std::stoi(std::getenv("EXPORTER_PORT")));
+    std::string exporter_host;
+    if (const char* host = std::getenv("EXPORTER_HOST")) {
+        exporter_host = std::string(host);
+    } else {
+        std::cout << "no EXPORTER_HOST specified defaulting to 127.0.0.1:9010" << std::endl;
+        exporter_host = "127.0.0.1:9010";
+    }
 
-    exposer_ = std::make_unique<prometheus::Exposer>("127.0.0.1:" + std::to_string(exporter_port));
+    exposer_ = std::make_unique<prometheus::Exposer>(exporter_host);
     registry_ = std::make_shared<prometheus::Registry>();
 
 
