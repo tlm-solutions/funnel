@@ -21,7 +21,6 @@ public:
     ~PrometheusExporter() noexcept = default;
 
     auto get_opened_connections() noexcept -> prometheus::Family<prometheus::Counter> &;
-
     auto get_closed_connections() noexcept -> prometheus::Family<prometheus::Counter> &;
 };
 

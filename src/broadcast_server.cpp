@@ -34,7 +34,7 @@ BroadcastServer::BroadcastServer() noexcept {
     });
 
 
-    if (std::getenv("API_DOMAIN") == nullptr) {
+    if (std::getenv("API_DOMAIN") != nullptr) {
         api_url_ = std::getenv("API_DOMAIN");
         std::cout << "API_DOMAIN FOUND:" << api_url_.value() << std::endl;
     } else {
