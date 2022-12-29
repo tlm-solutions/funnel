@@ -11,7 +11,7 @@
   prometheus-cpp,
   grpc, 
   which, 
-  dump-dvb-rust,
+  tlms-rust,
   curlpp,
   curlFull,
   json-structs-src
@@ -44,7 +44,7 @@ stdenv.mkDerivation {
   phases = [ "unpackPhase" "buildPhase" "installPhase" ];
 
   buildPhase = ''
-    cp ${dump-dvb-rust}/proto/telegram.proto ./telegram.proto
+    cp ${tlms-rust}/proto/telegram.proto ./telegram.proto
     mkdir -p src/protobuf
     protoc -I ./ --grpc_out=./src/protobuf/ --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./telegram.proto
     protoc -I=./ --cpp_out=./src/protobuf/ ./telegram.proto
@@ -63,6 +63,6 @@ stdenv.mkDerivation {
 
   meta = with lib; {
     description = "service which takes the incoming data";
-    homepage = "https://github.com/dump-dvb/funnel";
+    homepage = "https://github.com/tlm-solutions/funnel";
   };
 }

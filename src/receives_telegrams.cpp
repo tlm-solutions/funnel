@@ -10,8 +10,8 @@ ReceivesTelegramsImpl::~ReceivesTelegramsImpl() noexcept {
 }
 
 auto ReceivesTelegramsImpl::receive_r09([[maybe_unused]]grpc::ServerContext *context,
-                                        const dvbdump::R09GrpcTelegram *telegram,
-                                        dvbdump::ReturnCode *return_code) noexcept -> grpc::Status {
+                                        const tlms::R09GrpcTelegram *telegram,
+                                        tlms::ReturnCode *return_code) noexcept -> grpc::Status {
     this->websocket_server_.queue_telegram(telegram);
     return_code->set_status(0);
     return grpc::Status::OK;

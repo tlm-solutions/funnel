@@ -6,8 +6,8 @@
       url = "github:numtide/flake-utils";
     };
 
-    dump-dvb-rust = {
-      url = "github:dump-dvb/dump-dvb.rs";
+    tlms-rust = {
+      url = "github:tlm-solutions/tlms.rs";
       flake = false;
     };
 
@@ -17,15 +17,14 @@
     };
   };
 
-  outputs = { self, nixpkgs, utils, dump-dvb-rust, json-structs, ... }:
+  outputs = { self, nixpkgs, utils, tlms-rust, json-structs, ... }:
     (utils.lib.eachDefaultSystem
       (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
 
           package = pkgs.callPackage ./derivation.nix {
-            #stdenv = pkgs.clang13Stdenv;
-            dump-dvb-rust = dump-dvb-rust;
+            tlms-rust = tlms-rust;
             json-structs-src = json-structs;
           };
         in

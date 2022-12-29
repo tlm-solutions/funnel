@@ -159,7 +159,7 @@ void BroadcastServer::process_messages() noexcept {
 }
 
 auto BroadcastServer::fetch_api(unsigned int line, unsigned int run, unsigned int region) const noexcept
--> dvbdump::Edge * {
+-> tlms::Edge * {
     if (!api_url_.has_value()) {
         return nullptr;
     }
@@ -191,7 +191,7 @@ auto BroadcastServer::fetch_api(unsigned int line, unsigned int run, unsigned in
         google::protobuf::util::JsonParseOptions parse_options;
         parse_options.case_insensitive_enum_parsing = false;
         parse_options.ignore_unknown_fields = true;
-        auto *interpolation_struct = new dvbdump::Edge();
+        auto *interpolation_struct = new tlms::Edge();
 
         auto status = google::protobuf::util::JsonStringToMessage(protobuf_string, interpolation_struct, parse_options);
 
@@ -206,7 +206,7 @@ auto BroadcastServer::fetch_api(unsigned int line, unsigned int run, unsigned in
     }
 }
 
-void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram *telegram) noexcept {
+void BroadcastServer::queue_telegram(const tlms::R09GrpcTelegram *telegram) noexcept {
     // serialize the protobuf struct into json string
     std::string plain_serialized;
     plain_serialized.reserve(400);
@@ -223,7 +223,7 @@ void BroadcastServer::queue_telegram(const dvbdump::R09GrpcTelegram *telegram) n
     auto interpolation_data = fetch_api(telegram->line(), telegram->run_number(), telegram->region());
 
     bool enrichment_possible = interpolation_data != nullptr;
-    dvbdump::R09GrpcTelegramEnriched enriched_telegram;
+    tlms::R09GrpcTelegramEnriched enriched_telegram;
     if (enrichment_possible) {
         enriched_telegram.set_time(telegram->time());
         enriched_telegram.set_station(telegram->station());

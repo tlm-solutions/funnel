@@ -10,7 +10,7 @@ Service which filters and sends out data to all listening clients over websocket
 
 - **GRPC_PORT**: mendatory under which the grpc server runs
 - **WEBSOCKET_PORT**: mendatory under which port the websocket port runs
-- **API_DOMAIN**: http domain of an running [dvb-api](https://github.com/dump-dvb/dvb-api)
+- **API_DOMAIN**: http domain of an running [state-api](https://github.com/tlm-solutions/state-api)
 
 ### Filter 
 

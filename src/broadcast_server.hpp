@@ -67,9 +67,9 @@ public:
     void on_close(connection_hdl hdl) noexcept;
     void on_message(connection_hdl hdl, server::message_ptr msg) noexcept;
     void process_messages() noexcept;
-    void queue_telegram(const dvbdump::R09GrpcTelegram* telegram) noexcept;
+    void queue_telegram(const tlms::R09GrpcTelegram* telegram) noexcept;
     void kill() noexcept;
-    auto fetch_api(unsigned  int line, unsigned int run, unsigned int region) const noexcept -> dvbdump::Edge*;
+    auto fetch_api(unsigned  int line, unsigned int run, unsigned int region) const noexcept -> tlms::Edge*;
 };
 
 #endif //FUNNEL_BROADCAST_SERVER_HPP

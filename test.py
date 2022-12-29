@@ -19,5 +19,6 @@ async def hello(uri):
             data = json.loads(await websocket.recv())
             print(data)
 
-asyncio.run(hello("wss://socket.staging.dvb.solutions"))
+#TODO: change this to new domain
+asyncio.run(hello("wss://socket.dvb.solutions"))
 #asyncio.run(hello("ws://127.0.0.1:9001"))
