@@ -17,7 +17,7 @@
   json-structs-src
 }:
 let 
-  json_struct = stdenv.mkDerivation rec {
+  json_struct = stdenv.mkDerivation {
     pname = "json_struct";
     version = "0.0.1";
 

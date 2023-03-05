@@ -34,6 +34,9 @@
             funnel = package;
             default = package;
           };
+          devShells.default = pkgs.mkShell {
+            nativeBuildInputs = (with packages.funnel; buildInputs ++ nativeBuildInputs);
+          };
         }
       ) // {
       overlays.default = final: prev: {
