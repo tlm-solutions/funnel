@@ -75,8 +75,6 @@ in
             "GRPC_PORT" = "${toString cfg.GRPC.port}";
             "WEBSOCKET_PORT" = "${toString cfg.defaultWebsocket.port}";
             "EXPORTER_HOST" = "${cfg.metrics.host}:${toString cfg.metrics.port}";
-            "GRAPH_FILE" = "${config.TLMS.graphJson}";
-            "STOPS_FILE" = "${config.TLMS.stopsJson}";
             "API_DOMAIN" = "http://${cfg.apiAddress}";
           };
 
