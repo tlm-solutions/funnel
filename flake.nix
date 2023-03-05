@@ -43,6 +43,12 @@
         inherit (self.packages.${prev.system})
           funnel;
       };
+
+      nixosModules = rec {
+        default = funnel;
+        funnel = import ./nixos-module;
+      };
+
       hydraJobs =
         let
           hydraSystems = [
