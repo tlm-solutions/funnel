@@ -17,16 +17,16 @@
 #include <grpcpp/server_builder.h>
 #include <grpcpp/server_context.h>
 
-class ReceivesTelegramsImpl final : public tlms::ReceivesTelegrams::Service {
+class ReceivesWaypointsImpl final : public tlms::ReceiveWaypoint::Service {
 private:
     BroadcastServer websocket_server_;
     std::thread message_processor_;
     std::thread active_listener_;
 public:
-    explicit ReceivesTelegramsImpl(unsigned short websocket_port) noexcept;
-    ~ReceivesTelegramsImpl() noexcept override;
+    explicit ReceivesWaypointsImpl(unsigned short websocket_port) noexcept;
+    ~ReceivesWaypointsImpl() noexcept override;
 
-    auto receive_r09(grpc::ServerContext *context, const tlms::R09GrpcTelegram *telegram,
+    auto receive_waypoint(grpc::ServerContext *context, const tlms::GrpcWaypoint* waypoint,
                      tlms::ReturnCode *return_code) noexcept -> grpc::Status override;
 };
 

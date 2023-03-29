@@ -1,7 +1,7 @@
 //#define ASIO_STANDALONE
 //#define _WEBSOCKETPP_CPP11_TYPE_TRAITS_
 
-#include "receives_telegrams.hpp"
+#include "receives_waypoints.hpp"
 
 #include <cstdlib>
 #include <string>
@@ -16,7 +16,7 @@ int main() {
         unsigned short websocket_port = static_cast<unsigned short>(std::stoi(std::getenv("WEBSOCKET_PORT")));
 
         std::string server_address("127.0.0.1:" + std::to_string(grpc_port));
-        ReceivesTelegramsImpl service(websocket_port);
+        ReceivesWaypointsImpl service(websocket_port);
 
         grpc::ServerBuilder builder;
         builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
