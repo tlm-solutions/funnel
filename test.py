@@ -6,8 +6,7 @@ import json
 from websockets import connect
 
 config = {
-    "regions": [0, 1],
-    "enrich": True
+    "regions": [1],
 }
 
 raw_config = json.dumps(config);
@@ -20,5 +19,5 @@ async def hello(uri):
             print(data)
 
 #TODO: change this to new domain
-asyncio.run(hello("wss://socket.dvb.solutions"))
+asyncio.run(hello("wss://socket.staging.dvb.solutions"))
 #asyncio.run(hello("ws://127.0.0.1:9001"))

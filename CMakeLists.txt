@@ -20,7 +20,7 @@ pkg_check_modules(CURLPP REQUIRED curlpp)
 add_executable(funnel 
     src/main.cpp
     src/broadcast_server.cpp
-    src/receives_telegrams.cpp
+    src/receives_waypoints.cpp
     src/protobuf/telegram.pb.cc
     src/protobuf/telegram.grpc.pb.cc
     src/prometheus.cpp
