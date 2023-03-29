@@ -43,11 +43,11 @@
     "tlms-rust": {
       "flake": false,
       "locked": {
-        "lastModified": 1680095449,
-        "narHash": "sha256-cnM1QfANsg4d+hvNpmihFKwAn+R4VNtLvElSQtI3EVw=",
+        "lastModified": 1680101323,
+        "narHash": "sha256-rhELrrWaHFFvQYQ35JVyJlLcY9rMU/wt/J0Af0C+x0o=",
         "owner": "tlm-solutions",
         "repo": "tlms.rs",
-        "rev": "75bcddabdb8df9e04a0849b174d06409ac40715d",
+        "rev": "c2e29033a697b8963058b41049a08718c04347df",
         "type": "github"
       },
       "original": {
