@@ -26,8 +26,7 @@ public:
     explicit ReceivesWaypointsImpl(unsigned short websocket_port) noexcept;
     ~ReceivesWaypointsImpl() noexcept override;
 
-    auto receive_waypoint(grpc::ServerContext *context, const tlms::GrpcWaypoint* waypoint,
-                     tlms::ReturnCode *return_code) noexcept -> grpc::Status override;
+    auto receive_waypoint(grpc::ServerContext *context, const tlms::GrpcWaypoint* waypoint, tlms::ReturnCode *return_code) noexcept -> grpc::Status override;
 };
 
 #endif //FUNNEL_RECEIVES_TELEGRAMS_HPP
