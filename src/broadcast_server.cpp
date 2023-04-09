@@ -170,6 +170,8 @@ void BroadcastServer::queue_waypoint(const tlms::GrpcWaypoint *waypoint) noexcep
 
     google::protobuf::util::MessageToJsonString(*waypoint, &plain_serialized, options);
     
+    std::cout << "Sending: " << plain_serialized << std::endl;
+
     // lock connection list and yeet the waypoint to all peers
     {
         std::lock_guard<std::mutex> guard(connection_lock_);
