@@ -21,11 +21,6 @@ in
         description = "on which port the grpc server should bind to";
       };
     };
-    apiAddress = mkOption {
-      type = types.str;
-      default = "127.0.0.1:8080";
-      description = "address where dvb api runs";
-    };
     defaultWebsocket = {
       host = mkOption {
         type = types.str;
@@ -75,7 +70,6 @@ in
             "GRPC_PORT" = "${toString cfg.GRPC.port}";
             "WEBSOCKET_PORT" = "${toString cfg.defaultWebsocket.port}";
             "EXPORTER_HOST" = "${cfg.metrics.host}:${toString cfg.metrics.port}";
-            "API_DOMAIN" = "http://${cfg.apiAddress}";
           };
 
           serviceConfig = {
