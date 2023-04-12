@@ -57,7 +57,6 @@ private:
 
     PrometheusExporter exporter_;
 
-    std::optional<std::string> api_url_;
 public:
     BroadcastServer() noexcept;
     ~BroadcastServer() noexcept;

@@ -33,14 +33,6 @@ BroadcastServer::BroadcastServer() noexcept {
         on_message(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
     });
 
-
-    if (std::getenv("API_DOMAIN") != nullptr) {
-        api_url_ = std::getenv("API_DOMAIN");
-        std::cout << "API_DOMAIN FOUND:" << api_url_.value() << std::endl;
-    } else {
-        api_url_ = std::nullopt;
-        std::cout << "NO API_DOMAIN FOUND" << std::endl;
-    };
 }
 
 BroadcastServer::~BroadcastServer() noexcept {
