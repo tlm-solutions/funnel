@@ -19,5 +19,5 @@ async def hello(uri):
             print(data)
 
 #TODO: change this to new domain
-asyncio.run(hello("wss://socket.staging.dvb.solutions"))
+asyncio.run(hello("wss://socket.staging.tlm.solutions"))
 #asyncio.run(hello("ws://127.0.0.1:9001"))

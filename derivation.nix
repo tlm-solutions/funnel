@@ -23,7 +23,11 @@ let
 
     src = json-structs-src;
 
-    cmakeFlags = ["-DJSON_STRUCT_OPT_BUILD_TESTS=OFF" "-DCMAKE_INSTALL_PREFIX=''t"];
+    cmakeFlags = [
+      "-DJSON_STRUCT_OPT_BUILD_TESTS=OFF"
+      "-DJSON_STRUCT_OPT_BUILD_EXAMPLES=OFF"
+      "-DCMAKE_INSTALL_PREFIX='./'"
+    ];
 
     nativeBuildInputs = [ cmake ];
 
