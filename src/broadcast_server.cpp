@@ -162,7 +162,6 @@ void BroadcastServer::queue_waypoint(const tlms::GrpcWaypoint *waypoint) noexcep
 
     google::protobuf::util::MessageToJsonString(*waypoint, &plain_serialized, options);
     
-    std::cout << "Sending: " << plain_serialized << std::endl;
 
     // lock connection list and yeet the waypoint to all peers
     {
@@ -170,6 +169,7 @@ void BroadcastServer::queue_waypoint(const tlms::GrpcWaypoint *waypoint) noexcep
         //connection_list::iterator it;
         auto filter_iterator = filters_.begin();
         for (auto &connection: connections_) {
+            std::cout << "Filter: " << filter_iterator->match(waypoint->line(), waypoint->region()) <<" Sending: " << plain_serialized << std::endl;
             if (filter_iterator->match(waypoint->line(), waypoint->region())) {
                 server_.send(connection, plain_serialized, websocketpp::frame::opcode::TEXT);
             }
