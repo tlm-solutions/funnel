@@ -90,5 +90,6 @@ in
         extraGroups = [ ];
       };
     };
+    users.groups."${cfg.group}" = {};
   };
 }
