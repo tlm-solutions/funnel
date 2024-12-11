@@ -156,7 +156,8 @@ void BroadcastServer::queue_waypoint(const tlms::GrpcWaypoint *waypoint) noexcep
     plain_serialized.reserve(400);
 
     google::protobuf::util::JsonPrintOptions options;
-    options.always_print_primitive_fields = true;
+    options.always_print_enums_as_ints = true;
+    options.add_whitespace = true;
     options.preserve_proto_field_names = true;
     options.always_print_enums_as_ints = true;
 
