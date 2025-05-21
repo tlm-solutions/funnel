@@ -1,22 +1,21 @@
-{
-  stdenv, 
-  lib, 
-  pkg-config, 
-  openssl, 
-  fetchFromGitHub, 
-  cmake, 
-  protobuf, 
-  asio,
-  websocketpp,
-  prometheus-cpp,
-  grpc, 
-  which, 
-  tlms-rust,
-  curlpp,
-  curlFull,
-  json-structs-src
+{ stdenv
+, gcc13Stdenv
+, lib
+, pkg-config
+, openssl
+, cmake
+, protobuf
+, asio
+, websocketpp
+, prometheus-cpp
+, grpc
+, which
+, tlms-rust
+, curlpp
+, curlFull
+, json-structs-src
 }:
-let 
+let
   json_struct = stdenv.mkDerivation {
     pname = "json_struct";
     version = "0.0.1";
@@ -38,13 +37,14 @@ let
       maintainers = with maintainers; [ revol-xut ];
     };
   };
-in 
-stdenv.mkDerivation {
+in
+# use gcc13Stdenv and not stdenv to downgrade to gcc 13 -> @tassilo or @marenz please fix with gcc 14
+gcc13Stdenv.mkDerivation {
   pname = "funnel";
   version = "0.2.0";
 
   src = ./.;
-  
+
   phases = [ "unpackPhase" "buildPhase" "installPhase" ];
 
   buildPhase = ''
@@ -61,7 +61,7 @@ stdenv.mkDerivation {
     cp funnel $out/bin/
   '';
 
-  nativeBuildInputs = [ pkg-config cmake];
+  nativeBuildInputs = [ pkg-config cmake ];
 
   buildInputs = [ openssl protobuf websocketpp asio grpc which json_struct prometheus-cpp curlFull curlpp ];
 
