@@ -1,5 +1,4 @@
 { stdenv
-, gcc13Stdenv
 , lib
 , pkg-config
 , openssl
@@ -38,8 +37,8 @@ let
     };
   };
 in
-# use gcc13Stdenv and not stdenv to downgrade to gcc 13 -> @tassilo or @marenz please fix with gcc 14
-gcc13Stdenv.mkDerivation {
+# use gcc11Stdenv and not stdenv to downgrade to gcc 13 -> @tassilo or @marenz please fix with gcc 14
+stdenv.mkDerivation {
   pname = "funnel";
   version = "0.2.0";
 
