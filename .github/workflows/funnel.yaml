@@ -11,4 +11,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@v17
-      - run: nix build -vL #packages.x86_64-linux.chemo
+      - run: nix build -vL
