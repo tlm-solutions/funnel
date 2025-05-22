@@ -22,6 +22,11 @@
           pkgs = nixpkgs.legacyPackages.${system};
 
           package = pkgs.callPackage ./derivation.nix {
+            asio = (pkgs.asio.override {
+              boost = pkgs.boost186;
+            }).overrideAttrs {
+              enableParallelBuilding = true;
+            };
             tlms-rust = tlms-rust;
             json-structs-src = json-structs;
           };
