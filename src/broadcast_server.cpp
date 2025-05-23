@@ -32,6 +32,7 @@ BroadcastServer::BroadcastServer() noexcept {
     server_.set_message_handler([this](auto &&PH1, auto &&PH2) {
         on_message(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
     });
+    server_.clear_access_channels(websocketpp::log::alevel::frame_header | websocketpp::log::alevel::frame_payload);
 
 }
 
